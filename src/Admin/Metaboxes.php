@@ -1,4 +1,9 @@
 <?php
+/**
+ * Product and Analysis Metaboxes.
+ *
+ * @package CompetitorKnowledge\Admin
+ */
 
 declare(strict_types=1);
 
@@ -23,8 +28,8 @@ class Metaboxes {
 	public function init(): void {
 		add_action( 'add_meta_boxes', array( $this, 'add_product_metabox' ) );
 		add_action( 'add_meta_boxes', array( $this, 'add_analysis_metabox' ) );
-		// Ensure assets are enqueued for admin
-		// add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
+		// Ensure assets are enqueued for admin.
+		// add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );.
 	}
 
 	/**
@@ -96,7 +101,7 @@ class Metaboxes {
 						<?php foreach ( $analyses as $analysis ) : ?>
 							<?php
 							$status = get_post_meta( $analysis->ID, '_ck_status', true );
-							// Logic to get edit link
+							// Logic to get edit link.
 							$edit_link = get_edit_post_link( $analysis->ID );
 							?>
 							<tr>
@@ -131,7 +136,7 @@ class Metaboxes {
 			return;
 		}
 
-		// Price History Visualization
+		// Price History Visualization.
 		$product_id = get_post_meta( $post->ID, '_ck_target_product_id', true );
 		if ( $product_id ) {
 			$repo    = new \CompetitorKnowledge\Data\PriceHistoryRepository();

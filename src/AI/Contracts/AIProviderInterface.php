@@ -1,4 +1,9 @@
 <?php
+/**
+ * AI Provider Interface.
+ *
+ * @package CompetitorKnowledge\AI\Contracts
+ */
 
 declare(strict_types=1);
 

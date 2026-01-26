@@ -12,6 +12,8 @@
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * WC requires at least: 8.0
+ *
+ * @package CompetitorKnowledge
  */
 
 declare(strict_types=1);
@@ -22,13 +24,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Define Plugin Constants
+// Define Plugin Constants.
 define( 'COMPETITOR_KNOWLEDGE_VERSION', '1.0.0' );
 define( 'COMPETITOR_KNOWLEDGE_FILE', __FILE__ );
 define( 'COMPETITOR_KNOWLEDGE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'COMPETITOR_KNOWLEDGE_URL', plugin_dir_url( __FILE__ ) );
 
-// Require Messenger Autoloader
+// Require Messenger Autoloader.
 if ( file_exists( COMPETITOR_KNOWLEDGE_PATH . 'vendor/autoload.php' ) ) {
 	require_once COMPETITOR_KNOWLEDGE_PATH . 'vendor/autoload.php';
 }
@@ -37,13 +39,13 @@ if ( file_exists( COMPETITOR_KNOWLEDGE_PATH . 'vendor/autoload.php' ) ) {
  * Initialize the plugin.
  */
 function init(): void {
-	// Check if WooCommerce is active
+	// Check if WooCommerce is active.
 	if ( ! class_exists( 'WooCommerce' ) ) {
 		add_action( 'admin_notices', __NAMESPACE__ . '\\admin_notice_missing_woocommerce' );
 		return;
 	}
 
-	// Initialize Container / Bootstrap
+	// Initialize Container / Bootstrap.
 	$plugin = new Core\Plugin();
 	$plugin->run();
 }

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Dependency Injection Container.
+ *
+ * @package CompetitorKnowledge\Core
+ */
 
 declare(strict_types=1);
 
@@ -80,8 +85,9 @@ class Container {
 			return $instance;
 		}
 
-		// Auto-wiring
+		// Auto-wiring.
 		if ( ! class_exists( $abstract ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are not output to browser.
 			throw new Exception( "Class {$abstract} does not exist." );
 		}
 
@@ -99,7 +105,7 @@ class Container {
 			$dependencies = array();
 			foreach ( $constructor->getParameters() as $parameter ) {
 				$type = $parameter->getType();
-				if ( null === $type || $type->isBuiltin() ) {
+				if ( null === $type || ! $type instanceof \ReflectionNamedType || $type->isBuiltin() ) {
 					throw new Exception( "Cannot resolve parameter {$parameter->getName()} in class {$abstract}" );
 				}
 				$dependencies[] = $this->get( $type->getName() );
@@ -110,6 +116,7 @@ class Container {
 
 			return $instance;
 		} catch ( ReflectionException $e ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are not output to browser.
 			throw new Exception( 'Reflection error: ' . $e->getMessage() );
 		}
 	}

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Analysis Result Data Transfer Object.
+ *
+ * @package CompetitorKnowledge\AI\DTO
+ */
 
 declare(strict_types=1);
 

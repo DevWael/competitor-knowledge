@@ -1,4 +1,9 @@
 <?php
+/**
+ * Analysis Repository.
+ *
+ * @package CompetitorKnowledge\Data
+ */
 
 declare(strict_types=1);
 
@@ -52,6 +57,7 @@ class AnalysisRepository {
 			)
 		);
 
+		/** @phpstan-ignore-next-line - Defensive check for edge cases */
 		if ( is_wp_error( $post_id ) ) {
 			throw new InvalidArgumentException( 'Failed to create analysis post.' );
 		}

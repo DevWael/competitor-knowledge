@@ -1,4 +1,9 @@
 <?php
+/**
+ * OpenRouter AI Provider.
+ *
+ * @package CompetitorKnowledge\AI\Providers
+ */
 
 declare(strict_types=1);
 
@@ -54,7 +59,7 @@ class OpenRouterProvider implements AIProviderInterface {
 	public function analyze( string $prompt, array $context ): AnalysisResult {
 		$url = 'https://openrouter.ai/api/v1/chat/completions';
 
-		// Construct the prompt with context
+		// Construct the prompt with context.
 		$context_str = wp_json_encode( $context );
 		$full_prompt = "Context data: \n" . $context_str . "\n\nInstructions: \n" . $prompt . "\n\nReturn strictly valid minified JSON without markdown formatting.";
 
@@ -82,6 +87,7 @@ class OpenRouterProvider implements AIProviderInterface {
 		);
 
 		if ( is_wp_error( $response ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are not output to browser.
 			throw new RuntimeException( 'OpenRouter AI Failed: ' . $response->get_error_message() );
 		}
 
@@ -90,15 +96,16 @@ class OpenRouterProvider implements AIProviderInterface {
 		$data        = json_decode( $body, true );
 
 		if ( 200 !== $status_code ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are not output to browser.
 			throw new RuntimeException( 'OpenRouter AI Error: ' . ( $data['error']['message'] ?? 'Unknown error' ) );
 		}
 
-		// Extract content from response
+		// Extract content from response.
 		$content = $data['choices'][0]['message']['content'] ?? '';
 		$json    = json_decode( $content, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			// Fallback: try to clean markdown code blocks
+			// Fallback: try to clean markdown code blocks.
 			$content = preg_replace( '/^```json|```$/m', '', $content );
 			$json    = json_decode( trim( $content ), true );
 		}

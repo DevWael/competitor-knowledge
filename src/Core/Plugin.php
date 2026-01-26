@@ -1,4 +1,9 @@
 <?php
+/**
+ * Core Plugin Bootstrap.
+ *
+ * @package CompetitorKnowledge\Core
+ */
 
 declare(strict_types=1);
 
@@ -44,7 +49,7 @@ class Plugin {
 	 * Register services in the container.
 	 */
 	private function register_services(): void {
-		// Bind Settings
+		// Bind Settings.
 		$this->container->bind(
 			Settings::class,
 			function () {
@@ -52,7 +57,7 @@ class Plugin {
 			}
 		);
 
-		// Bind Search Provider
+		// Bind Search Provider.
 		$this->container->bind(
 			\CompetitorKnowledge\Search\Contracts\SearchProviderInterface::class,
 			function () {
@@ -61,7 +66,7 @@ class Plugin {
 			}
 		);
 
-		// Bind AI Provider
+		// Bind AI Provider.
 		$this->container->bind(
 			\CompetitorKnowledge\AI\Contracts\AIProviderInterface::class,
 			function () {
@@ -80,12 +85,12 @@ class Plugin {
 					return new \CompetitorKnowledge\AI\Providers\OpenRouterProvider( $openrouter_key, $model_name );
 				}
 
-				// Default to Google
+				// Default to Google.
 				return new \CompetitorKnowledge\AI\Providers\GoogleGeminiProvider( $google_key, $model_name );
 			}
 		);
 
-		// Bind Analyzer
+		// Bind Analyzer.
 		$this->container->bind(
 			\CompetitorKnowledge\Analysis\Analyzer::class,
 			function ( $c ) {
@@ -103,10 +108,10 @@ class Plugin {
 	 * Register WP hooks.
 	 */
 	private function register_hooks(): void {
-		// Register CPT
+		// Register CPT.
 		add_action( 'init', array( $this, 'register_cpt' ) );
 
-		// Register Admin UI (Settings, Metaboxes, Ajax)
+		// Register Admin UI (Settings, Metaboxes, Ajax).
 		if ( is_admin() ) {
 			( new Settings() )->init();
 			( new Metaboxes() )->init();
@@ -114,11 +119,11 @@ class Plugin {
 			( new \CompetitorKnowledge\Admin\BulkActions() )->init();
 		}
 
-		// Register Job Handler
+		// Register Job Handler.
 		\CompetitorKnowledge\Analysis\Jobs\AnalysisJob::init();
 		\CompetitorKnowledge\Analysis\Jobs\ScheduledAnalysisJob::init();
 
-		// Assets
+		// Assets.
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
@@ -133,9 +138,9 @@ class Plugin {
 	 * Enqueue Admin Assets.
 	 */
 	public function enqueue_assets(): void {
-		// Chart.js for Price History
+		// Chart.js for Price History.
 		wp_enqueue_script( 'chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '4.4.1', true );
-		// Chart.js Date Adapter (required for 'time' scale)
+		// Chart.js Date Adapter (required for 'time' scale).
 		wp_enqueue_script( 'chart-js-adapter', 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js', array( 'chart-js' ), '3.0.0', true );
 
 		wp_enqueue_script(

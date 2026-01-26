@@ -1,4 +1,9 @@
 <?php
+/**
+ * Plugin Installer.
+ *
+ * @package CompetitorKnowledge\Data
+ */
 
 declare(strict_types=1);
 

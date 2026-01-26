@@ -1,4 +1,9 @@
 <?php
+/**
+ * Scheduled Analysis Job Handler.
+ *
+ * @package CompetitorKnowledge\Analysis\Jobs
+ */
 
 declare(strict_types=1);
 
@@ -38,19 +43,19 @@ class ScheduledAnalysisJob {
 		$frequency = $options['scheduled_analysis_frequency'] ?? 'weekly';
 
 		if ( ! $enabled ) {
-			// Unschedule if disabled
+			// Unschedule if disabled.
 			if ( function_exists( 'as_unschedule_all_actions' ) ) {
 				as_unschedule_all_actions( self::ACTION );
 			}
 			return;
 		}
 
-		// Check if already scheduled
+		// Check if already scheduled.
 		if ( function_exists( 'as_next_scheduled_action' ) && as_next_scheduled_action( self::ACTION ) ) {
 			return;
 		}
 
-		// Schedule based on frequency
+		// Schedule based on frequency.
 		$interval = self::get_interval( $frequency );
 
 		if ( function_exists( 'as_schedule_recurring_action' ) ) {
@@ -82,10 +87,10 @@ class ScheduledAnalysisJob {
 		$options    = get_option( Settings::OPTION_NAME );
 		$categories = $options['scheduled_analysis_categories'] ?? array();
 
-		// Get products to analyze
+		// Get products to analyze.
 		$args = array(
 			'post_type'      => 'product',
-			'posts_per_page' => 50, // Limit per run
+			'posts_per_page' => 50, // Limit per run.
 			'post_status'    => 'publish',
 			'fields'         => 'ids',
 		);
@@ -112,7 +117,7 @@ class ScheduledAnalysisJob {
 			try {
 				$analysis_id = $repo->create( (int) $product_id );
 
-				// Schedule individual analysis job
+				// Schedule individual analysis job.
 				if ( function_exists( 'as_schedule_single_action' ) ) {
 					as_schedule_single_action( time() + 60, AnalysisJob::ACTION, array( 'analysis_id' => $analysis_id ) );
 				}

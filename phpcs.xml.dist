@@ -22,14 +22,28 @@
 
 	<rule ref="WordPress.WP.I18n">
 		<properties>
-			<property name="text_domain" type="array" value="competitor-knowledge"/>
+			<element key="text_domain" value="competitor-knowledge"/>
 		</properties>
 	</rule>	
 
+	<!-- Custom WooCommerce capability -->
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="edit_products"/>
+			</property>
+		</properties>
+	</rule>
 
+	<!-- Exclude reserved keyword warnings for legitimate DI container and default parameter usage -->
+	<rule ref="Universal.NamingConventions.NoReservedKeywordParameterNames">
+		<exclude-pattern>src/Core/Container.php</exclude-pattern>
+		<exclude-pattern>src/Admin/Settings.php</exclude-pattern>
+	</rule>
 
 	<rule ref="WordPress-Core">
         <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
         <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
     </rule>
 </ruleset>
+

@@ -82,6 +82,7 @@ class OllamaProvider implements AIProviderInterface {
 		);
 
 		if ( is_wp_error( $response ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are not output to browser.
 			throw new RuntimeException( 'Ollama AI Failed: ' . $response->get_error_message() );
 		}
 

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Bulk Actions Handler.
+ *
+ * @package CompetitorKnowledge\Admin
+ */
 
 declare(strict_types=1);
 
@@ -62,18 +67,18 @@ class BulkActions {
 			try {
 				$analysis_id = $repo->create( (int) $product_id );
 
-				// Schedule the job
+				// Schedule the job.
 				if ( function_exists( 'as_schedule_single_action' ) ) {
 					as_schedule_single_action( time(), AnalysisJob::ACTION, array( 'analysis_id' => $analysis_id ) );
 					++$count;
 				}
 			} catch ( \Exception $e ) {
-				// Log error and continue
+				// Log error and continue.
 				error_log( 'Bulk Analysis Error: ' . $e->getMessage() ); // phpcs:ignore
 			}
 		}
 
-		// Add query arg for admin notice
+		// Add query arg for admin notice.
 		$redirect_to = add_query_arg( 'ck_bulk_analysis', $count, $redirect_to );
 
 		return $redirect_to;

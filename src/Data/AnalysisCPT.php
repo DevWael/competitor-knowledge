@@ -54,7 +54,6 @@ class AnalysisCPT {
 			'capability_type'    => 'post',
 			'has_archive'        => false,
 			'hierarchical'       => false,
-			'menu_position'      => null,
 			'supports'           => array( 'title' ), // We store data in meta.
 		);
 

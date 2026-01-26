@@ -1,4 +1,9 @@
 <?php
+/**
+ * Tavily Search Provider.
+ *
+ * @package CompetitorKnowledge\Search\Providers
+ */
 
 declare(strict_types=1);
 
@@ -70,6 +75,7 @@ class TavilyProvider implements SearchProviderInterface {
 		);
 
 		if ( is_wp_error( $response ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are not output to browser.
 			throw new RuntimeException( 'Tavily Search Failed: ' . $response->get_error_message() );
 		}
 
@@ -78,6 +84,7 @@ class TavilyProvider implements SearchProviderInterface {
 		$data        = json_decode( $body, true );
 
 		if ( 200 !== $status_code || ! isset( $data['results'] ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are not output to browser.
 			throw new RuntimeException( 'Tavily Search Error: ' . ( $data['error'] ?? 'Unknown error' ) );
 		}
 

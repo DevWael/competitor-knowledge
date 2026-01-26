@@ -1,4 +1,9 @@
 <?php
+/**
+ * Search Provider Interface.
+ *
+ * @package CompetitorKnowledge\Search\Contracts
+ */
 
 declare(strict_types=1);
 

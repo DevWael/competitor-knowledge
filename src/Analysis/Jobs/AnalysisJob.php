@@ -35,19 +35,17 @@ class AnalysisJob {
 	}
 
 	/**
-	 * Handle the analysis job.
+	 * Handle the analysis job by resolving Analyzer from container and processing.
 	 *
 	 * @param int $analysis_id The analysis ID.
 	 */
 	public static function handle( int $analysis_id ): void {
 		try {
 			$container = Container::get_instance();
-			/** @var Analyzer $analyzer */
-			// Resolve Analyzer from container.
-			$analyzer = $container->get( Analyzer::class );
+			$analyzer  = $container->get( Analyzer::class );
 			$analyzer->process( $analysis_id );
 		} catch ( Exception $e ) {
-			// Log error
+			// Log error.
 			error_log( 'Analysis Job Failed: ' . $e->getMessage() ); // phpcs:ignore
 		}
 	}

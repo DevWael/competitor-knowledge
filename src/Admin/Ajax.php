@@ -1,4 +1,9 @@
 <?php
+/**
+ * AJAX Handler.
+ *
+ * @package CompetitorKnowledge\Admin
+ */
 
 declare(strict_types=1);
 
@@ -25,6 +30,8 @@ class Ajax {
 
 	/**
 	 * Run analysis via AJAX.
+	 *
+	 * @throws \Exception If Action Scheduler is not available.
 	 */
 	public function run_analysis(): void {
 		check_ajax_referer( 'ck_nonce', 'nonce' );
@@ -43,7 +50,7 @@ class Ajax {
 			$repo        = new AnalysisRepository();
 			$analysis_id = $repo->create( $product_id );
 
-			// Schedule the job
+			// Schedule the job.
 			if ( function_exists( 'as_schedule_single_action' ) ) {
 				as_schedule_single_action( time(), AnalysisJob::ACTION, array( 'analysis_id' => $analysis_id ) );
 			} else {

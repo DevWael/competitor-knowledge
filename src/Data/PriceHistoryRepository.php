@@ -1,4 +1,9 @@
 <?php
+/**
+ * Price History Repository.
+ *
+ * @package CompetitorKnowledge\Data
+ */
 
 declare(strict_types=1);
 
@@ -15,6 +20,8 @@ class PriceHistoryRepository {
 
 	/**
 	 * Table name.
+	 *
+	 * @var string
 	 */
 	private string $table_name;
 
@@ -66,6 +73,7 @@ class PriceHistoryRepository {
 
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is sanitized via $wpdb->prefix.
 				"SELECT * FROM {$this->table_name} WHERE product_id = %d ORDER BY date_recorded ASC",
 				$product_id
 			),

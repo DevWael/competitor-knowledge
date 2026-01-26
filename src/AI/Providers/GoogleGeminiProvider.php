@@ -1,4 +1,9 @@
 <?php
+/**
+ * Google Gemini AI Provider.
+ *
+ * @package CompetitorKnowledge\AI\Providers
+ */
 
 declare(strict_types=1);
 
@@ -59,7 +64,7 @@ class GoogleGeminiProvider implements AIProviderInterface {
 	public function analyze( string $prompt, array $context ): AnalysisResult {
 		$url = self::API_URL . $this->model . ':generateContent?key=' . $this->api_key;
 
-		// Construct the prompt with context
+		// Construct the prompt with context.
 		$context_str = wp_json_encode( $context );
 		$full_prompt = "Context data: \n" . $context_str . "\n\nInstructions: \n" . $prompt . "\n\nReturn strictly valid minified JSON without markdown formatting.";
 
@@ -88,6 +93,7 @@ class GoogleGeminiProvider implements AIProviderInterface {
 		);
 
 		if ( is_wp_error( $response ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are not output to browser.
 			throw new RuntimeException( 'Google AI Failed: ' . $response->get_error_message() );
 		}
 
@@ -96,15 +102,16 @@ class GoogleGeminiProvider implements AIProviderInterface {
 		$data        = json_decode( $body, true );
 
 		if ( 200 !== $status_code ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are not output to browser.
 			throw new RuntimeException( 'Google AI Error: ' . ( $data['error']['message'] ?? 'Unknown error' ) );
 		}
 
-		// Extract content from response
+		// Extract content from response.
 		$content = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
 		$json    = json_decode( $content, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			// Fallback: try to clean markdown code blocks if present (though responseMimeType should prevent this)
+			// Fallback: try to clean markdown code blocks if present (though responseMimeType should prevent this).
 			$content = preg_replace( '/^```json|```$/m', '', $content );
 			$json    = json_decode( $content, true );
 		}

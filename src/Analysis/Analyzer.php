@@ -125,7 +125,7 @@ class Analyzer {
 			if ( ! empty( $insights['competitors'] ) ) {
 				foreach ( $insights['competitors'] as $comp ) {
 					if ( isset( $comp['price'], $comp['name'] ) ) {
-						// Clean price string to float
+						// Clean price string to float.
 						$price = (float) preg_replace( '/[^0-9.]/', '', (string) $comp['price'] );
 						$this->price_history->add_record(
 							$product_id,
@@ -184,8 +184,8 @@ class Analyzer {
 		$diff_percent = ( ( $my_price - $competitor_price ) / $my_price ) * 100;
 
 		if ( $diff_percent >= $threshold ) {
-			/* translators: 1: Product name, 2: Competitor name */
 			$subject = sprintf(
+				/* translators: 1: Product name, 2: Competitor name */
 				__( 'Price Alert: %1$s is cheaper at %2$s', 'competitor-knowledge' ),
 				$product->get_name(),
 				$competitor_name
