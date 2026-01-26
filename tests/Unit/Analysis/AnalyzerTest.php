@@ -66,13 +66,27 @@ class AnalyzerTest extends TestCase {
 			->andReturn( $search_results );
 
 		// AI
-		$ai_result = new AnalysisResult( ['competitors' => [
-			[
-				'name' => 'Competitor X',
-				'price' => '80.00', // Cheaper than 99.00
-				'currency' => 'USD'
+		$ai_result = new AnalysisResult( [
+			'competitors' => [
+				[
+					'name' => 'Competitor X',
+					'price' => '80.00', // Cheaper than 99.00
+					'currency' => 'USD'
+				]
+			],
+			'strategy' => [
+				'pricing_advice' => 'Match price',
+				'action_items'   => [ 'Update marketing' ]
+			],
+			'content_analysis' => [
+				'my_tone' => 'Neutral',
+				'competitor_tone' => 'Exciting',
+				'missing_keywords' => [ 'Fast' ]
+			],
+			'sentiment_analysis' => [
+				'competitor_weaknesses' => [ 'Bad support' ]
 			]
-		]] );
+		] );
 		$ai_provider->shouldReceive( 'analyze' )
 			->once()
 			->andReturn( $ai_result );

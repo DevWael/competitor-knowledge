@@ -178,9 +178,7 @@ class Analyzer {
 			 */
 			$context = apply_filters( 'ck_ai_context', $context, $product, $analysis_id );
 
-			$prompt = "Analyze the search results to find competitors selling the same product. \n" .
-					"Compare prices, specifications, and availability. \n" .
-					"Return a structured JSON with 'competitors' list, each having 'name', 'url', 'price', 'currency', 'stock_status', and 'comparison_notes'.";
+			$prompt = $this->build_analysis_prompt();
 
 			/**
 			 * Filters the prompt sent to the AI provider.
@@ -388,6 +386,64 @@ class Analyzer {
 		 * @param \WC_Product          $product The WooCommerce product object.
 		 */
 		return apply_filters( 'ck_get_product_data', $data, $product );
+	}
+
+	/**
+	 * Build the AI analysis prompt.
+	 *
+	 * This method generates the prompt that instructs the AI to perform
+	 * competitor analysis, content gap analysis, sentiment analysis, and
+	 * provide strategic advice.
+	 *
+	 * @return string The analysis prompt.
+	 */
+	protected function build_analysis_prompt(): string {
+		$prompt = <<<'PROMPT'
+Analyze the search results to find competitors selling the same product.
+Compare prices, specifications, and availability.
+
+Also perform:
+1. Content Gap Analysis: Compare the tone and identify keywords present in competitor descriptions but missing in mine.
+2. Sentiment Analysis: Identify common competitor weaknesses or complaints based on reviews/snippets.
+3. Strategic Advice: Provide pricing and positioning advice based on the comparison.
+
+Return a strictly valid JSON (no markdown) with this structure:
+{
+  "competitors": [
+    {
+      "name": "Competitor Name",
+      "url": "https://example.com",
+      "price": "99.99",
+      "currency": "USD",
+      "stock_status": "in_stock|out_of_stock|unknown",
+      "comparison_notes": "Brief comparison notes"
+    }
+  ],
+  "content_analysis": {
+    "my_tone": "Tone description",
+    "competitor_tone": "Tone description",
+    "missing_keywords": ["keyword1", "keyword2"],
+    "improvement_suggestion": "Suggested improvement text"
+  },
+  "sentiment_analysis": {
+    "competitor_weaknesses": ["weakness1", "weakness2"],
+    "market_gaps": ["gap1", "gap2"]
+  },
+  "strategy": {
+    "pricing_advice": "Pricing recommendation",
+    "action_items": ["action1", "action2"]
+  }
+}
+PROMPT;
+
+		/**
+		 * Filters the base analysis prompt before it's sent to the AI.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $prompt The base prompt string.
+		 */
+		return apply_filters( 'ck_analysis_base_prompt', $prompt );
 	}
 
 	/**

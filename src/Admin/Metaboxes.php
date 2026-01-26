@@ -100,15 +100,21 @@ class Metaboxes {
 					<tbody>
 						<?php foreach ( $analyses as $analysis ) : ?>
 							<?php
+							if ( ! $analysis instanceof WP_Post ) {
+								continue;
+							}
 							$status = get_post_meta( $analysis->ID, '_ck_status', true );
 							// Logic to get edit link.
 							$edit_link = get_edit_post_link( $analysis->ID );
+							if ( null === $edit_link ) {
+								continue; // Skip if no edit link available.
+							}
 							?>
 							<tr>
 								<td><?php echo esc_html( (string) get_the_date( '', $analysis ) ); ?></td>
 								<td><?php echo esc_html( ucfirst( (string) $status ) ); ?></td>
 								<td>
-									<a href="<?php echo esc_url( (string) $edit_link ); ?>" class="button button-small">
+									<a href="<?php echo esc_url( $edit_link ); ?>" class="button button-small">
 										<?php esc_html_e( 'View Report', 'competitor-knowledge' ); ?>
 									</a>
 								</td>
@@ -135,6 +141,9 @@ class Metaboxes {
 			echo '<p>' . esc_html__( 'No data available yet.', 'competitor-knowledge' ) . '</p>';
 			return;
 		}
+
+		// 1. Render Strategy Card.
+		$this->render_strategy_section( $data );
 
 		// Price History Visualization.
 		$product_id = get_post_meta( $post->ID, '_ck_target_product_id', true );
@@ -223,6 +232,129 @@ class Metaboxes {
 				<?php endforeach; ?>
 			</tbody>
 		</table>
+		<?php
+
+		// 3. Render Content Analysis.
+		$this->render_content_analysis_section( $data );
+
+		// 4. Render Sentiment Analysis.
+		$this->render_sentiment_section( $data );
+	}
+
+	/**
+	 * Render the Strategy section.
+	 *
+	 * @param array<string, mixed> $data Analysis data.
+	 */
+	private function render_strategy_section( array $data ): void {
+		$strategy = $data['strategy'] ?? array();
+		if ( empty( $strategy['pricing_advice'] ) && empty( $strategy['action_items'] ) ) {
+			return;
+		}
+		?>
+		<div class="ck-strategy-card" style="background: #e3f2fd; padding: 15px; border-left: 5px solid #2196f3; margin-bottom: 20px;">
+			<h3 style="margin-top:0; color: #1976d2;"><?php esc_html_e( '🎯 Strategic Advice', 'competitor-knowledge' ); ?></h3>
+			
+			<?php if ( ! empty( $strategy['pricing_advice'] ) ) : ?>
+				<p><strong><?php esc_html_e( 'Pricing Strategy:', 'competitor-knowledge' ); ?></strong> <?php echo esc_html( $strategy['pricing_advice'] ); ?></p>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $strategy['action_items'] ) ) : ?>
+				<h4 style="margin-bottom: 5px;"><?php esc_html_e( 'Action Items:', 'competitor-knowledge' ); ?></h4>
+				<ul style="list-style-type: disc; margin-left: 20px;">
+					<?php foreach ( $strategy['action_items'] as $item ) : ?>
+						<li><?php echo esc_html( $item ); ?></li>
+					<?php endforeach; ?>
+				</ul>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render the Content Gap Analysis section.
+	 *
+	 * @param array<string, mixed> $data Analysis data.
+	 */
+	private function render_content_analysis_section( array $data ): void {
+		$content = $data['content_analysis'] ?? array();
+		if ( empty( $content ) ) {
+			return;
+		}
+		?>
+		<div class="ck-section" style="margin-bottom: 20px; border: 1px solid #ccd0d4; padding: 15px; background: #fff;">
+			<h3><?php esc_html_e( '📝 Content Gap Analysis', 'competitor-knowledge' ); ?></h3>
+			
+			<div style="display: flex; gap: 20px; margin-bottom: 15px;">
+				<div style="flex: 1;">
+					<strong><?php esc_html_e( 'Your Tone:', 'competitor-knowledge' ); ?></strong>
+					<span class="ck-tag" style="background: #e0e0e0; padding: 2px 8px; border-radius: 4px;"><?php echo esc_html( $content['my_tone'] ?? 'N/A' ); ?></span>
+				</div>
+				<div style="flex: 1;">
+					<strong><?php esc_html_e( 'Competitor Tone:', 'competitor-knowledge' ); ?></strong>
+					<span class="ck-tag" style="background: #e0e0e0; padding: 2px 8px; border-radius: 4px;"><?php echo esc_html( $content['competitor_tone'] ?? 'N/A' ); ?></span>
+				</div>
+			</div>
+
+			<?php if ( ! empty( $content['missing_keywords'] ) ) : ?>
+				<p><strong><?php esc_html_e( 'Missing Keywords:', 'competitor-knowledge' ); ?></strong></p>
+				<div class="ck-keywords" style="margin-bottom: 15px;">
+					<?php foreach ( $content['missing_keywords'] as $keyword ) : ?>
+						<span style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; margin-right: 5px; display: inline-block; border: 1px solid #ffeeba;">
+							<?php echo esc_html( $keyword ); ?>
+						</span>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $content['improvement_suggestion'] ) ) : ?>
+				<div class="ck-suggestion">
+					<strong><?php esc_html_e( 'Improvement Suggestion:', 'competitor-knowledge' ); ?></strong>
+					<textarea readonly style="width: 100%; height: 80px; margin-top: 5px;"><?php echo esc_html( $content['improvement_suggestion'] ); ?></textarea>
+				</div>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render the Sentiment Analysis section.
+	 *
+	 * @param array<string, mixed> $data Analysis data.
+	 */
+	private function render_sentiment_section( array $data ): void {
+		$sentiment = $data['sentiment_analysis'] ?? array();
+		if ( empty( $sentiment['competitor_weaknesses'] ) && empty( $sentiment['market_gaps'] ) ) {
+			return;
+		}
+		?>
+		<div class="ck-section" style="margin-bottom: 20px; border: 1px solid #ccd0d4; padding: 15px; background: #fff;">
+			<h3><?php esc_html_e( '🧠 Sentiment Intelligence', 'competitor-knowledge' ); ?></h3>
+
+			<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+				<?php if ( ! empty( $sentiment['competitor_weaknesses'] ) ) : ?>
+					<div>
+						<h4 style="color: #d32f2f; margin-top: 0;"><?php esc_html_e( '📉 Competitor Weaknesses', 'competitor-knowledge' ); ?></h4>
+						<ul style="list-style-type: circle; margin-left: 20px;">
+							<?php foreach ( $sentiment['competitor_weaknesses'] as $weakness ) : ?>
+								<li><?php echo esc_html( $weakness ); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( ! empty( $sentiment['market_gaps'] ) ) : ?>
+					<div>
+						<h4 style="color: #388e3c; margin-top: 0;"><?php esc_html_e( '🚀 Market Gaps (Opportunities)', 'competitor-knowledge' ); ?></h4>
+						<ul style="list-style-type: circle; margin-left: 20px;">
+							<?php foreach ( $sentiment['market_gaps'] as $gap ) : ?>
+								<li><?php echo esc_html( $gap ); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					</div>
+				<?php endif; ?>
+			</div>
+		</div>
 		<?php
 	}
 }

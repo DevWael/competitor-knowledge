@@ -44,6 +44,42 @@ class AnalysisResult {
 	}
 
 	/**
+	 * Get competitor data.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function get_competitors(): array {
+		return $this->insights['competitors'] ?? array();
+	}
+
+	/**
+	 * Get content analysis data.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function get_content_analysis(): array {
+		return $this->insights['content_analysis'] ?? array();
+	}
+
+	/**
+	 * Get sentiment analysis data.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function get_sentiment_analysis(): array {
+		return $this->insights['sentiment_analysis'] ?? array();
+	}
+
+	/**
+	 * Get strategic advice.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function get_strategy(): array {
+		return $this->insights['strategy'] ?? array();
+	}
+
+	/**
 	 * Convert the result to an array.
 	 *
 	 * @return array<string, mixed>

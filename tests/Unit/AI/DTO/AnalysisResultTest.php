@@ -55,6 +55,36 @@ class AnalysisResultTest extends TestCase {
 		$this->assertEquals( array(), $result->to_array() );
 	}
 
+	public function test_get_content_analysis_returns_data() {
+		$data = array(
+			'content_analysis' => array(
+				'my_tone' => 'Professional',
+			),
+		);
+		$result = new AnalysisResult( $data );
+		$this->assertEquals( $data['content_analysis'], $result->get_content_analysis() );
+	}
+
+	public function test_get_sentiment_analysis_returns_data() {
+		$data = array(
+			'sentiment_analysis' => array(
+				'market_gaps' => array( 'Gap 1' ),
+			),
+		);
+		$result = new AnalysisResult( $data );
+		$this->assertEquals( $data['sentiment_analysis'], $result->get_sentiment_analysis() );
+	}
+
+	public function test_get_strategy_returns_data() {
+		$data = array(
+			'strategy' => array(
+				'pricing_advice' => 'Raise price',
+			),
+		);
+		$result = new AnalysisResult( $data );
+		$this->assertEquals( $data['strategy'], $result->get_strategy() );
+	}
+
 	public function test_handles_complex_nested_data() {
 		$data = array(
 			'competitors' => array(
