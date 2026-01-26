@@ -77,7 +77,8 @@ class Plugin {
 			return new \CompetitorKnowledge\Analysis\Analyzer(
 				$c->get( \CompetitorKnowledge\Search\Contracts\SearchProviderInterface::class ),
 				$c->get( \CompetitorKnowledge\AI\Contracts\AIProviderInterface::class ),
-				new \CompetitorKnowledge\Data\AnalysisRepository()
+				new \CompetitorKnowledge\Data\AnalysisRepository(),
+				new \CompetitorKnowledge\Data\PriceHistoryRepository()
 			);
 		} );
 	}
@@ -114,6 +115,11 @@ class Plugin {
 	 * Enqueue Admin Assets.
 	 */
 	public function enqueue_assets(): void {
+		// Chart.js for Price History
+		wp_enqueue_script( 'chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', [], '4.4.1', true );
+		// Chart.js Date Adapter (required for 'time' scale)
+		wp_enqueue_script( 'chart-js-adapter', 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js', [ 'chart-js' ], '3.0.0', true );
+
 		wp_enqueue_script(
 			'ck-admin-js',
 			COMPETITOR_KNOWLEDGE_URL . 'assets/js/admin.min.js',

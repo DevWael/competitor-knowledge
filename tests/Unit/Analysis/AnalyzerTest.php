@@ -8,6 +8,7 @@ use CompetitorKnowledge\Search\Contracts\SearchProviderInterface;
 use CompetitorKnowledge\Data\AnalysisRepository;
 use CompetitorKnowledge\AI\DTO\AnalysisResult;
 use CompetitorKnowledge\Search\DTO\SearchResults;
+use CompetitorKnowledge\Admin\Settings;
 use Mockery;
 use PHPUnit\Framework\TestCase;
 use Brain\Monkey;
@@ -30,6 +31,7 @@ class AnalyzerTest extends TestCase {
 		$search_provider = Mockery::mock( SearchProviderInterface::class );
 		$ai_provider     = Mockery::mock( AIProviderInterface::class );
 		$repository      = Mockery::mock( AnalysisRepository::class );
+		$price_history   = Mockery::mock( \CompetitorKnowledge\Data\PriceHistoryRepository::class );
 		$product         = Mockery::mock( 'WC_Product' );
 
 		// Expectations
@@ -64,20 +66,37 @@ class AnalyzerTest extends TestCase {
 			->andReturn( $search_results );
 
 		// AI
-		$ai_result = new AnalysisResult( ['competitors' => []] );
+		$ai_result = new AnalysisResult( ['competitors' => [
+			[
+				'name' => 'Competitor X',
+				'price' => '80.00', // Cheaper than 99.00
+				'currency' => 'USD'
+			]
+		]] );
 		$ai_provider->shouldReceive( 'analyze' )
 			->once()
 			->andReturn( $ai_result );
 
 		$repository->shouldReceive( 'save_results' )
-			->once()
-			->with( $analysis_id, ['competitors' => []] );
+			->once();
 
+		// Price History & Notification Expectations
+		$price_history->shouldReceive( 'add_record' )
+			->once()
+			->with( $product_id, $analysis_id, 'Competitor X', 80.00, 'USD' );
+
+		Monkey\Functions\expect( 'get_option' )
+			->with( Settings::OPTION_NAME )
+			->andReturn( [ 'notification_email' => 'admin@test.com', 'price_drop_threshold' => 10 ] );
+		
+		Monkey\Functions\expect( 'wp_mail' )
+			->once()
+			->with( 'admin@test.com', Mockery::type('string'), Mockery::type('string') );
 
 		// Run
-		$analyzer = new Analyzer( $search_provider, $ai_provider, $repository );
+		$analyzer = new Analyzer( $search_provider, $ai_provider, $repository, $price_history );
 		$analyzer->process( $analysis_id );
 		
-		$this->assertTrue( true ); // Assert reached end without exception
+		$this->assertTrue( true );
 	}
 }

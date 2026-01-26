@@ -89,6 +89,53 @@ class Settings {
 			'ck_general_section',
 			[ 'id' => 'tavily_api_key' ]
 		);
+
+		// Notification Settings
+		add_settings_section(
+			'ck_notification_section',
+			__( 'Notifications', 'competitor-knowledge' ),
+			'__return_empty_string',
+			'competitor-knowledge'
+		);
+
+		add_settings_field(
+			'notification_email',
+			__( 'Notification Email', 'competitor-knowledge' ),
+			[ $this, 'render_field_text' ],
+			'competitor-knowledge',
+			'ck_notification_section',
+			[ 
+				'id'      => 'notification_email',
+				'default' => get_option( 'admin_email' ),
+			]
+		);
+
+		add_settings_field(
+			'price_drop_threshold',
+			__( 'Price Drop Threshold (%)', 'competitor-knowledge' ),
+			[ $this, 'render_field_number' ],
+			'competitor-knowledge',
+			'ck_notification_section',
+			[ 
+				'id'      => 'price_drop_threshold',
+				'default' => '10',
+			]
+		);
+	}
+
+	/**
+	 * Render a number field.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public function render_field_number( array $args ): void {
+		$options = get_option( self::OPTION_NAME );
+		$id      = $args['id'];
+		$default = $args['default'] ?? '0';
+		$value   = $options[ $id ] ?? $default;
+		?>
+		<input type="number" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[<?php echo esc_attr( $id ); ?>]" value="<?php echo esc_attr( $value ); ?>" class="small-text" min="0" max="100">
+		<?php
 	}
 
 	/**

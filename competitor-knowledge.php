@@ -49,6 +49,8 @@ function init(): void {
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\init' );
 
+register_activation_hook( COMPETITOR_KNOWLEDGE_FILE, [ __NAMESPACE__ . '\\Data\\Installer', 'install' ] );
+
 /**
  * Admin notice for missing WooCommerce dependency.
  */

@@ -130,6 +130,59 @@ class Metaboxes {
 			echo '<p>' . esc_html__( 'No data available yet.', 'competitor-knowledge' ) . '</p>';
 			return;
 		}
+
+		// Price History Visualization
+		$product_id = get_post_meta( $post->ID, '_ck_target_product_id', true );
+		if ( $product_id ) {
+			$repo    = new \CompetitorKnowledge\Data\PriceHistoryRepository();
+			$history = $repo->get_history( (int) $product_id );
+			
+			if ( ! empty( $history ) ) {
+				$chart_data = [];
+				foreach ( $history as $row ) {
+					$chart_data[ $row['competitor_name'] ][] = [
+						'x' => $row['date_recorded'],
+						'y' => $row['price'],
+					];
+				}
+				?>
+				<div class="ck-price-chart-container" style="margin-bottom: 20px;">
+					<canvas id="ckPriceChart" height="100"></canvas>
+				</div>
+				<script>
+				document.addEventListener('DOMContentLoaded', function() {
+					if (typeof Chart === 'undefined') return;
+					
+					var ctx = document.getElementById('ckPriceChart').getContext('2d');
+					var datasets = [];
+					var colors = ['#f44336', '#2196f3', '#4caf50', '#ff9800', '#9c27b0'];
+					var i = 0;
+
+					<?php foreach ( $chart_data as $name => $points ) : ?>
+						datasets.push({
+							label: '<?php echo esc_js( $name ); ?>',
+							data: <?php echo wp_json_encode( $points ); ?>,
+							borderColor: colors[i % colors.length],
+							fill: false
+						});
+						i++;
+					<?php endforeach; ?>
+
+					new Chart(ctx, {
+						type: 'line',
+						data: { datasets: datasets },
+						options: {
+							scales: {
+								x: { type: 'time', time: { unit: 'day' } },
+								y: { beginAtZero: false } // Price usually not zero
+							}
+						}
+					});
+				});
+				</script>
+				<?php
+			}
+		}
 		
 		?>
 		<table class="widefat striped">

@@ -7,6 +7,7 @@ namespace CompetitorKnowledge\Analysis;
 use CompetitorKnowledge\AI\Contracts\AIProviderInterface;
 use CompetitorKnowledge\Search\Contracts\SearchProviderInterface;
 use CompetitorKnowledge\Data\AnalysisRepository;
+use CompetitorKnowledge\Data\PriceHistoryRepository;
 use Exception;
 use WC_Product;
 
@@ -41,20 +42,30 @@ class Analyzer {
 	private AnalysisRepository $repository;
 
 	/**
+	 * Price History Repository.
+	 *
+	 * @var PriceHistoryRepository
+	 */
+	private PriceHistoryRepository $price_history;
+
+	/**
 	 * Analyzer constructor.
 	 *
 	 * @param SearchProviderInterface $search_provider Search service.
 	 * @param AIProviderInterface     $ai_provider     AI service.
 	 * @param AnalysisRepository      $repository      Data repository.
+	 * @param PriceHistoryRepository  $price_history   Price History repository.
 	 */
 	public function __construct(
 		SearchProviderInterface $search_provider,
 		AIProviderInterface $ai_provider,
-		AnalysisRepository $repository
+		AnalysisRepository $repository,
+		PriceHistoryRepository $price_history
 	) {
 		$this->search_provider = $search_provider;
 		$this->ai_provider     = $ai_provider;
 		$this->repository      = $repository;
+		$this->price_history   = $price_history;
 	}
 
 	/**
@@ -103,6 +114,27 @@ class Analyzer {
 			// 5. Save Results
 			$this->repository->save_results( $analysis_id, $analysis_result->to_array() );
 
+			// 6. Log Price History
+			$insights = $analysis_result->get_insights();
+			if ( ! empty( $insights['competitors'] ) ) {
+				foreach ( $insights['competitors'] as $comp ) {
+					if ( isset( $comp['price'], $comp['name'] ) ) {
+						// Clean price string to float
+						$price = (float) preg_replace( '/[^0-9.]/', '', (string) $comp['price'] );
+						$this->price_history->add_record(
+							$product_id,
+							$analysis_id,
+							$comp['name'],
+							$price,
+							$comp['currency'] ?? 'USD'
+						);
+
+						// 7. Check for Notification
+						$this->check_price_alert( $product, $comp['name'], $price );
+					}
+				}
+			}
+
 		} catch ( Exception $e ) {
 			$this->repository->update_status( $analysis_id, 'failed' );
 			// Log error via Action Scheduler or WP Log
@@ -125,5 +157,44 @@ class Analyzer {
 			'price' => $product->get_price(),
 			'desc'  => wp_strip_all_tags( $product->get_short_description() ),
 		];
+	}
+
+	/**
+	 * Check and send price alert.
+	 *
+	 * @param WC_Product $product         The product.
+	 * @param string     $competitor_name Competitor name.
+	 * @param float      $competitor_price Competitor price.
+	 */
+	private function check_price_alert( WC_Product $product, string $competitor_name, float $competitor_price ): void {
+		$options   = get_option( \CompetitorKnowledge\Admin\Settings::OPTION_NAME );
+		$email     = $options['notification_email'] ?? '';
+		$threshold = (float) ( $options['price_drop_threshold'] ?? 10 );
+		$my_price  = (float) $product->get_price();
+
+		if ( ! $email || $my_price <= 0 ) {
+			return;
+		}
+
+		$diff_percent = ( ( $my_price - $competitor_price ) / $my_price ) * 100;
+
+		if ( $diff_percent >= $threshold ) {
+			$subject = sprintf( 
+				__( 'Price Alert: %s is cheaper at %s', 'competitor-knowledge' ),
+				$product->get_name(),
+				$competitor_name
+			);
+
+			$message = sprintf(
+				__( "Alert!\n\nYour Product: %s\nYour Price: %s\n\nCompetitor: %s\nCompetitor Price: %s\nDifference: %s%%\n\nLogin to view details.", 'competitor-knowledge' ),
+				$product->get_name(),
+				$my_price,
+				$competitor_name,
+				$competitor_price,
+				round( $diff_percent, 2 )
+			);
+
+			wp_mail( $email, $subject, $message );
+		}
 	}
 }
