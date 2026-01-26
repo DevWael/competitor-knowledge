@@ -38,6 +38,8 @@
   },
   "scripts": {
     "test": "phpunit",
+    "coverage": "phpunit --coverage-text",
+    "coverage-html": "phpunit --coverage-html coverage-html",
     "lint": "phpcs",
     "fix": "phpcbf",
     "analyze": "phpstan analyse --memory-limit 2G"

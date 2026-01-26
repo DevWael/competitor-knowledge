@@ -2,7 +2,7 @@ parameters:
     bootstrapFiles:
         - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
-    level: 5
+    level: 8
     paths:
         - src/
         - competitor-knowledge.php

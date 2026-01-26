@@ -8,9 +8,17 @@
 .vscode/
 *.log
 
-# Build Assets
-/assets/css/
-/assets/js/
+# PHPUnit
+.phpunit.result.cache
+
+# Code Coverage
+coverage-html/
+coverage/
+.coverage/
+
+# Build
+assets/css/
+assets/js/
 !/assets/css/.gitkeep
 !/assets/js/.gitkeep
 
