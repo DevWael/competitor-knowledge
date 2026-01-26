@@ -314,17 +314,27 @@ class SettingsTest extends TestCase {
 			->once()
 			->andReturn( array( 'ai_provider' => 'ollama' ) );
 
+		Monkey\Functions\expect( 'apply_filters' )
+			->once()
+			->with( 'ck_ai_provider_options', Mockery::type( 'array' ) )
+			->andReturnUsing( function( $hook, $providers ) {
+				return $providers;
+			} );
+
 		Monkey\Functions\stubs(
 			array(
-				'esc_attr'    => function ( $text ) {
+				'esc_attr'   => function ( $text ) {
 					return $text;
 				},
-				'selected'    => function ( $a, $b ) {
+				'esc_html'   => function ( $text ) {
+					return $text;
+				},
+				'selected'   => function ( $a, $b ) {
 					if ( $a === $b ) {
 						echo 'selected';
 					}
 				},
-				'esc_html_e'  => function ( $text ) {
+				'esc_html_e' => function ( $text ) {
 					echo $text;
 				},
 			)

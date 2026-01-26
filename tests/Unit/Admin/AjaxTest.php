@@ -87,6 +87,14 @@ class AjaxTest extends TestCase {
 			->once()
 			->andReturn( true );
 
+		Monkey\Functions\expect( 'do_action' )
+			->zeroOrMoreTimes();
+
+		Monkey\Functions\expect( 'apply_filters' )
+			->andReturnUsing( function( $hook, $value ) {
+				return $value;
+			} );
+
 		Monkey\Functions\expect( 'current_time' )
 			->once()
 			->andReturn( '2026-01-26 00:00:00' );
@@ -95,8 +103,16 @@ class AjaxTest extends TestCase {
 			->once()
 			->andReturn( 456 );
 
+		Monkey\Functions\expect( 'is_wp_error' )
+			->once()
+			->andReturn( false );
+
 		Monkey\Functions\expect( 'update_post_meta' )
 			->twice();
+
+		Monkey\Functions\expect( 'get_post_meta' )
+			->once()
+			->andReturn( '' );
 
 		// as_schedule_single_action doesn't exist.
 		Monkey\Functions\expect( 'wp_send_json_error' )
@@ -120,6 +136,14 @@ class AjaxTest extends TestCase {
 			->once()
 			->andReturn( true );
 
+		Monkey\Functions\expect( 'do_action' )
+			->zeroOrMoreTimes();
+
+		Monkey\Functions\expect( 'apply_filters' )
+			->andReturnUsing( function( $hook, $value ) {
+				return $value;
+			} );
+
 		Monkey\Functions\expect( 'current_time' )
 			->once()
 			->andReturn( '2026-01-26 00:00:00' );
@@ -128,8 +152,16 @@ class AjaxTest extends TestCase {
 			->once()
 			->andReturn( 456 );
 
+		Monkey\Functions\expect( 'is_wp_error' )
+			->once()
+			->andReturn( false );
+
 		Monkey\Functions\expect( 'update_post_meta' )
 			->twice();
+
+		Monkey\Functions\expect( 'get_post_meta' )
+			->once()
+			->andReturn( '' );
 
 		Monkey\Functions\expect( 'as_schedule_single_action' )
 			->once();

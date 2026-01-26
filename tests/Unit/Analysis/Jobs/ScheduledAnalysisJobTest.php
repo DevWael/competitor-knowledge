@@ -122,9 +122,18 @@ class ScheduledAnalysisJobTest extends TestCase {
 	}
 
 	public function test_handle_returns_early_when_no_products() {
+		Monkey\Functions\expect( 'do_action' )
+			->once()
+			->with( 'ck_before_scheduled_analysis' );
+
 		Monkey\Functions\expect( 'get_option' )
 			->once()
 			->andReturn( array() );
+
+		Monkey\Functions\expect( 'apply_filters' )
+			->andReturnUsing( function( $hook, $value ) {
+				return $value;
+			} );
 
 		Monkey\Functions\expect( 'get_posts' )
 			->once()
@@ -136,9 +145,17 @@ class ScheduledAnalysisJobTest extends TestCase {
 	}
 
 	public function test_handle_processes_products_and_schedules_jobs() {
+		Monkey\Functions\expect( 'do_action' )
+			->zeroOrMoreTimes();
+
 		Monkey\Functions\expect( 'get_option' )
 			->once()
 			->andReturn( array( 'scheduled_analysis_categories' => array() ) );
+
+		Monkey\Functions\expect( 'apply_filters' )
+			->andReturnUsing( function( $hook, $value ) {
+				return $value;
+			} );
 
 		Monkey\Functions\expect( 'get_posts' )
 			->once()
@@ -152,8 +169,16 @@ class ScheduledAnalysisJobTest extends TestCase {
 			->twice()
 			->andReturn( 100, 101 );
 
+		Monkey\Functions\expect( 'is_wp_error' )
+			->twice()
+			->andReturn( false );
+
 		Monkey\Functions\expect( 'update_post_meta' )
 			->times( 4 );
+
+		Monkey\Functions\expect( 'get_post_meta' )
+			->twice()
+			->andReturn( '' ); // For old status in update_status
 
 		Monkey\Functions\expect( 'as_schedule_single_action' )
 			->twice();
@@ -164,9 +189,18 @@ class ScheduledAnalysisJobTest extends TestCase {
 	}
 
 	public function test_handle_with_category_filter() {
+		Monkey\Functions\expect( 'do_action' )
+			->once()
+			->with( 'ck_before_scheduled_analysis' );
+
 		Monkey\Functions\expect( 'get_option' )
 			->once()
 			->andReturn( array( 'scheduled_analysis_categories' => array( 5, 10 ) ) );
+
+		Monkey\Functions\expect( 'apply_filters' )
+			->andReturnUsing( function( $hook, $value ) {
+				return $value;
+			} );
 
 		Monkey\Functions\expect( 'get_posts' )
 			->once()

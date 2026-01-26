@@ -31,6 +31,14 @@ class AnalysisRepositoryTest extends TestCase {
 		$product_id = 123;
 		$post_id    = 456;
 
+		Monkey\Functions\expect( 'apply_filters' )
+			->andReturnUsing( function( $hook, $value ) {
+				return $value;
+			} );
+
+		Monkey\Functions\expect( 'do_action' )
+			->zeroOrMoreTimes();
+
 		Monkey\Functions\expect( 'wp_insert_post' )
 			->once()
 			->with( Mockery::on( function ( $args ) use ( $product_id ) {
@@ -47,6 +55,10 @@ class AnalysisRepositoryTest extends TestCase {
 
 		Monkey\Functions\expect( 'update_post_meta' )
 			->twice(); // Once for status, once for product_id
+
+		Monkey\Functions\expect( 'get_post_meta' )
+			->once()
+			->andReturn( '' ); // For old status in update_status
 
 		Monkey\Functions\expect( 'current_time' )
 			->once()
@@ -98,9 +110,18 @@ class AnalysisRepositoryTest extends TestCase {
 		$analysis_id = 456;
 		$status      = 'processing';
 
+		Monkey\Functions\expect( 'get_post_meta' )
+			->once()
+			->with( $analysis_id, '_ck_status', true )
+			->andReturn( 'pending' );
+
 		Monkey\Functions\expect( 'update_post_meta' )
 			->once()
 			->with( $analysis_id, '_ck_status', $status );
+
+		Monkey\Functions\expect( 'do_action' )
+			->once()
+			->with( 'ck_analysis_status_changed', $analysis_id, $status, 'pending' );
 
 		$this->repository->update_status( $analysis_id, $status );
 
@@ -119,8 +140,20 @@ class AnalysisRepositoryTest extends TestCase {
 			),
 		);
 
+		Monkey\Functions\expect( 'apply_filters' )
+			->once()
+			->with( 'ck_analysis_data_before_save', $data, $analysis_id )
+			->andReturn( $data );
+
 		Monkey\Functions\expect( 'update_post_meta' )
 			->twice(); // Once for data, once for status
+
+		Monkey\Functions\expect( 'get_post_meta' )
+			->once()
+			->andReturn( 'processing' ); // Old status for update_status
+
+		Monkey\Functions\expect( 'do_action' )
+			->twice(); // status_changed and results_saved
 
 		$this->repository->save_results( $analysis_id, $data );
 

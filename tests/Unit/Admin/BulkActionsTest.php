@@ -89,6 +89,14 @@ class BulkActionsTest extends TestCase {
 		$action      = 'ck_run_analysis';
 		$post_ids    = array( 1, 2 );
 
+		Monkey\Functions\expect( 'do_action' )
+			->zeroOrMoreTimes();
+
+		Monkey\Functions\expect( 'apply_filters' )
+			->andReturnUsing( function( $hook, $value ) {
+				return $value;
+			} );
+
 		Monkey\Functions\expect( 'current_time' )
 			->twice()
 			->andReturn( '2026-01-26 00:00:00' );
@@ -97,8 +105,16 @@ class BulkActionsTest extends TestCase {
 			->twice()
 			->andReturn( 100, 101 );
 
+		Monkey\Functions\expect( 'is_wp_error' )
+			->twice()
+			->andReturn( false );
+
 		Monkey\Functions\expect( 'update_post_meta' )
 			->times( 4 );
+
+		Monkey\Functions\expect( 'get_post_meta' )
+			->twice()
+			->andReturn( '' );
 
 		Monkey\Functions\expect( 'as_schedule_single_action' )
 			->twice();
@@ -118,6 +134,11 @@ class BulkActionsTest extends TestCase {
 		$redirect_to = 'https://example.com/wp-admin/edit.php';
 		$action      = 'ck_run_analysis';
 		$post_ids    = array( 1 );
+
+		Monkey\Functions\expect( 'apply_filters' )
+			->andReturnUsing( function( $hook, $value ) {
+				return $value;
+			} );
 
 		Monkey\Functions\expect( 'current_time' )
 			->once()
