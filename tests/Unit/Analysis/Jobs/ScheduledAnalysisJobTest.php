@@ -134,4 +134,100 @@ class ScheduledAnalysisJobTest extends TestCase {
 
 		$this->assertTrue( true );
 	}
+
+	public function test_handle_processes_products_and_schedules_jobs() {
+		Monkey\Functions\expect( 'get_option' )
+			->once()
+			->andReturn( array( 'scheduled_analysis_categories' => array() ) );
+
+		Monkey\Functions\expect( 'get_posts' )
+			->once()
+			->andReturn( array( 1, 2 ) );
+
+		Monkey\Functions\expect( 'current_time' )
+			->twice()
+			->andReturn( '2026-01-26 00:00:00' );
+
+		Monkey\Functions\expect( 'wp_insert_post' )
+			->twice()
+			->andReturn( 100, 101 );
+
+		Monkey\Functions\expect( 'update_post_meta' )
+			->times( 4 );
+
+		Monkey\Functions\expect( 'as_schedule_single_action' )
+			->twice();
+
+		ScheduledAnalysisJob::handle();
+
+		$this->assertTrue( true );
+	}
+
+	public function test_handle_with_category_filter() {
+		Monkey\Functions\expect( 'get_option' )
+			->once()
+			->andReturn( array( 'scheduled_analysis_categories' => array( 5, 10 ) ) );
+
+		Monkey\Functions\expect( 'get_posts' )
+			->once()
+			->andReturn( array() );
+
+		ScheduledAnalysisJob::handle();
+
+		$this->assertTrue( true );
+	}
+
+	public function test_schedule_recurring_job_uses_daily_interval() {
+		Monkey\Functions\expect( 'get_option' )
+			->once()
+			->andReturn(
+				array(
+					'scheduled_analysis_enabled'   => true,
+					'scheduled_analysis_frequency' => 'daily',
+				)
+			);
+
+		Monkey\Functions\expect( 'as_next_scheduled_action' )
+			->once()
+			->andReturn( false );
+
+		Monkey\Functions\expect( 'as_schedule_recurring_action' )
+			->once()
+			->with(
+				Mockery::type( 'int' ),
+				DAY_IN_SECONDS,
+				ScheduledAnalysisJob::ACTION
+			);
+
+		ScheduledAnalysisJob::schedule_recurring_job();
+
+		$this->assertTrue( true );
+	}
+
+	public function test_schedule_recurring_job_uses_monthly_interval() {
+		Monkey\Functions\expect( 'get_option' )
+			->once()
+			->andReturn(
+				array(
+					'scheduled_analysis_enabled'   => true,
+					'scheduled_analysis_frequency' => 'monthly',
+				)
+			);
+
+		Monkey\Functions\expect( 'as_next_scheduled_action' )
+			->once()
+			->andReturn( false );
+
+		Monkey\Functions\expect( 'as_schedule_recurring_action' )
+			->once()
+			->with(
+				Mockery::type( 'int' ),
+				MONTH_IN_SECONDS,
+				ScheduledAnalysisJob::ACTION
+			);
+
+		ScheduledAnalysisJob::schedule_recurring_job();
+
+		$this->assertTrue( true );
+	}
 }

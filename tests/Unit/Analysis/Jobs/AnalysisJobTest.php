@@ -26,11 +26,6 @@ class AnalysisJobTest extends TestCase {
 		$this->assertEquals( 'ck_run_analysis_job', AnalysisJob::ACTION );
 	}
 
-	public function test_action_constant_is_string() {
-		$this->assertIsString( AnalysisJob::ACTION );
-		$this->assertNotEmpty( AnalysisJob::ACTION );
-	}
-
 	public function test_action_constant_has_correct_prefix() {
 		$this->assertStringStartsWith( 'ck_', AnalysisJob::ACTION );
 	}
@@ -46,5 +41,14 @@ class AnalysisJobTest extends TestCase {
 		AnalysisJob::init();
 
 		$this->assertTrue( true );
+	}
+
+	public function test_action_constant_is_string() {
+		$this->assertIsString( AnalysisJob::ACTION );
+		$this->assertNotEmpty( AnalysisJob::ACTION );
+	}
+
+	public function test_action_constant_matches_expected_format() {
+		$this->assertMatchesRegularExpression( '/^ck_[a-z_]+$/', AnalysisJob::ACTION );
 	}
 }

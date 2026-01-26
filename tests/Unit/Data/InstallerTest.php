@@ -34,4 +34,8 @@ class InstallerTest extends TestCase {
 		$this->assertIsString( Installer::TABLE_PRICE_HISTORY );
 		$this->assertNotEmpty( Installer::TABLE_PRICE_HISTORY );
 	}
+
+	public function test_table_name_contains_price_history() {
+		$this->assertStringContainsString( 'price_history', Installer::TABLE_PRICE_HISTORY );
+	}
 }

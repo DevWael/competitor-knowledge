@@ -84,6 +84,59 @@ class BulkActionsTest extends TestCase {
 		$this->assertEquals( $redirect_to, $result );
 	}
 
+	public function test_handle_bulk_action_schedules_jobs_successfully() {
+		$redirect_to = 'https://example.com/wp-admin/edit.php';
+		$action      = 'ck_run_analysis';
+		$post_ids    = array( 1, 2 );
+
+		Monkey\Functions\expect( 'current_time' )
+			->twice()
+			->andReturn( '2026-01-26 00:00:00' );
+
+		Monkey\Functions\expect( 'wp_insert_post' )
+			->twice()
+			->andReturn( 100, 101 );
+
+		Monkey\Functions\expect( 'update_post_meta' )
+			->times( 4 );
+
+		Monkey\Functions\expect( 'as_schedule_single_action' )
+			->twice();
+
+		Monkey\Functions\expect( 'add_query_arg' )
+			->once()
+			->with( 'ck_bulk_analysis', 2, $redirect_to )
+			->andReturn( $redirect_to . '?ck_bulk_analysis=2' );
+
+		$bulk_actions = new BulkActions();
+		$result       = $bulk_actions->handle_bulk_action( $redirect_to, $action, $post_ids );
+
+		$this->assertStringContainsString( 'ck_bulk_analysis=2', $result );
+	}
+
+	public function test_handle_bulk_action_handles_exception() {
+		$redirect_to = 'https://example.com/wp-admin/edit.php';
+		$action      = 'ck_run_analysis';
+		$post_ids    = array( 1 );
+
+		Monkey\Functions\expect( 'current_time' )
+			->once()
+			->andReturn( '2026-01-26 00:00:00' );
+
+		Monkey\Functions\expect( 'wp_insert_post' )
+			->once()
+			->andThrow( new \Exception( 'Insert failed' ) );
+
+		Monkey\Functions\expect( 'add_query_arg' )
+			->once()
+			->andReturn( $redirect_to . '?ck_bulk_analysis=0' );
+
+		$bulk_actions = new BulkActions();
+		$result       = $bulk_actions->handle_bulk_action( $redirect_to, $action, $post_ids );
+
+		$this->assertStringContainsString( 'ck_bulk_analysis=0', $result );
+	}
+
 	public function test_bulk_action_admin_notice_returns_early_without_query_arg() {
 		$_REQUEST = array();
 

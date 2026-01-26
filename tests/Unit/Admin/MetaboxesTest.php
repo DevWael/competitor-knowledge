@@ -222,4 +222,130 @@ class MetaboxesTest extends TestCase {
 		// Just verify it doesn't show error and returns some output.
 		$this->assertNotEmpty( $output );
 	}
+
+	public function test_render_results_metabox_with_price_history() {
+		global $wpdb;
+		$wpdb = Mockery::mock( 'wpdb' );
+		$wpdb->prefix = 'wp_';
+		$wpdb->shouldReceive( 'prepare' )
+			->andReturn( 'SELECT * FROM wp_ck_price_history WHERE product_id = 100' );
+		$wpdb->shouldReceive( 'get_results' )
+			->andReturn(
+				array(
+					array(
+						'competitor_name' => 'Test Competitor',
+						'price'           => '50.00',
+						'date_recorded'   => '2026-01-01',
+					),
+				)
+			);
+
+		$post     = Mockery::mock( 'WP_Post' );
+		$post->ID = 789;
+
+		$data = array(
+			'competitors' => array(
+				array(
+					'name'             => 'Competitor A',
+					'price'            => '99.99',
+					'currency'         => 'USD',
+					'stock_status'     => 'in_stock',
+					'comparison_notes' => 'Lower price',
+					'url'              => 'https://competitor-a.com',
+				),
+			),
+		);
+
+		Monkey\Functions\expect( 'get_post_meta' )
+			->with( 789, '_ck_analysis_data', true )
+			->andReturn( $data );
+
+		Monkey\Functions\expect( 'get_post_meta' )
+			->with( 789, '_ck_target_product_id', true )
+			->andReturn( 100 );
+
+		Monkey\Functions\stubs(
+			array(
+				'esc_html'   => function ( $text ) {
+					return $text;
+				},
+				'esc_html_e' => function ( $text ) {
+					echo $text;
+				},
+				'esc_url'    => function ( $url ) {
+					return $url;
+				},
+				'esc_js'     => function ( $text ) {
+					return $text;
+				},
+				'wp_json_encode' => function ( $data ) {
+					return json_encode( $data );
+				},
+			)
+		);
+
+		$metaboxes = new Metaboxes();
+
+		ob_start();
+		$metaboxes->render_results_metabox( $post );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '<table', $output );
+		$this->assertStringContainsString( 'ckPriceChart', $output );
+	}
+
+	public function test_render_results_metabox_with_empty_url() {
+		$post     = Mockery::mock( 'WP_Post' );
+		$post->ID = 789;
+
+		$data = array(
+			'competitors' => array(
+				array(
+					'name'             => 'Competitor B',
+					'price'            => '49.99',
+					'currency'         => 'EUR',
+					'stock_status'     => 'out_of_stock',
+					'comparison_notes' => '',
+					'url'              => '', // Empty URL.
+				),
+			),
+		);
+
+		Monkey\Functions\expect( 'get_post_meta' )
+			->with( 789, '_ck_analysis_data', true )
+			->andReturn( $data );
+
+		Monkey\Functions\expect( 'get_post_meta' )
+			->with( 789, '_ck_target_product_id', true )
+			->andReturn( null );
+
+		Monkey\Functions\stubs(
+			array(
+				'esc_html'       => function ( $text ) {
+					return $text;
+				},
+				'esc_html_e'     => function ( $text ) {
+					echo $text;
+				},
+				'esc_url'        => function ( $url ) {
+					return $url;
+				},
+				'esc_js'         => function ( $text ) {
+					return $text;
+				},
+				'wp_json_encode' => function ( $data ) {
+					return json_encode( $data );
+				},
+			)
+		);
+
+		$metaboxes = new Metaboxes();
+
+		ob_start();
+		$metaboxes->render_results_metabox( $post );
+		$output = ob_get_clean();
+
+		// Should NOT contain Visit button since URL is empty.
+		$this->assertStringNotContainsString( 'Visit', $output );
+	}
 }
