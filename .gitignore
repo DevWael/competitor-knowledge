@@ -1,0 +1,23 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# Build Assets
+/assets/css/
+/assets/js/
+!/assets/css/.gitkeep
+!/assets/js/.gitkeep
+
+# Tests
+/tests/.phpunit.result.cache
+/phpstan-baseline.neon
+.phpunit.result.cache
+
+composer.lock
+package-lock.json
