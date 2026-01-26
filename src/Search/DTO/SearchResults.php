@@ -1,4 +1,9 @@
 <?php
+/**
+ * Search Results DTO.
+ *
+ * @package CompetitorKnowledge
+ */
 
 declare(strict_types=1);
 

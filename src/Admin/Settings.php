@@ -1,4 +1,9 @@
 <?php
+/**
+ * Plugin Settings page handler.
+ *
+ * @package CompetitorKnowledge
+ */
 
 declare(strict_types=1);
 
@@ -39,12 +44,12 @@ class Settings {
 			return $new_value;
 		}
 
-		// Encrypt sensitive fields
+		// Encrypt sensitive fields.
 		$sensitive_fields = array( 'google_api_key', 'tavily_api_key' );
 
 		foreach ( $sensitive_fields as $field ) {
 			if ( ! empty( $new_value[ $field ] ) ) {
-				// Only encrypt if not already encrypted
+				// Only encrypt if not already encrypted.
 				if ( ! \CompetitorKnowledge\Core\Encryption::is_encrypted( $new_value[ $field ] ) ) {
 					$new_value[ $field ] = \CompetitorKnowledge\Core\Encryption::encrypt( $new_value[ $field ] );
 				}
@@ -91,7 +96,7 @@ class Settings {
 		add_settings_section(
 			'ck_general_section',
 			__( 'General Settings', 'competitor-knowledge' ),
-			'__return_empty_string', // Valid callback
+			'__return_empty_string', // Valid callback.
 			'competitor-knowledge'
 		);
 
@@ -162,7 +167,7 @@ class Settings {
 			array( 'id' => 'tavily_api_key' )
 		);
 
-		// Notification Settings
+		// Notification Settings.
 		add_settings_section(
 			'ck_notification_section',
 			__( 'Notifications', 'competitor-knowledge' ),
@@ -194,7 +199,7 @@ class Settings {
 			)
 		);
 
-		// Scheduled Analysis Settings
+		// Scheduled Analysis Settings.
 		add_settings_section(
 			'ck_scheduled_section',
 			__( 'Scheduled Analysis', 'competitor-knowledge' ),

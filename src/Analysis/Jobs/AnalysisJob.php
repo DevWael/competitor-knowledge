@@ -1,4 +1,9 @@
 <?php
+/**
+ * Analysis Job handler for Action Scheduler.
+ *
+ * @package CompetitorKnowledge
+ */
 
 declare(strict_types=1);
 
@@ -30,7 +35,7 @@ class AnalysisJob {
 	}
 
 	/**
-	 * Handle the job.
+	 * Handle the analysis job.
 	 *
 	 * @param int $analysis_id The analysis ID.
 	 */
@@ -38,6 +43,7 @@ class AnalysisJob {
 		try {
 			$container = Container::get_instance();
 			/** @var Analyzer $analyzer */
+			// Resolve Analyzer from container.
 			$analyzer = $container->get( Analyzer::class );
 			$analyzer->process( $analysis_id );
 		} catch ( Exception $e ) {

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Ollama AI Provider implementation.
+ *
+ * @package CompetitorKnowledge
+ */
 
 declare(strict_types=1);
 
@@ -54,7 +59,7 @@ class OllamaProvider implements AIProviderInterface {
 	public function analyze( string $prompt, array $context ): AnalysisResult {
 		$url = $this->api_url . '/api/generate';
 
-		// Construct the prompt with context
+		// Construct the prompt with context.
 		$context_str = wp_json_encode( $context );
 		$full_prompt = "Context data: \n" . $context_str . "\n\nInstructions: \n" . $prompt . "\n\nReturn strictly valid minified JSON without markdown formatting.";
 
@@ -72,7 +77,7 @@ class OllamaProvider implements AIProviderInterface {
 					'Content-Type' => 'application/json',
 				),
 				'body'    => wp_json_encode( $body ),
-				'timeout' => 120, // Ollama can be slower
+				'timeout' => 120, // Ollama can be slower.
 			)
 		);
 
@@ -85,20 +90,22 @@ class OllamaProvider implements AIProviderInterface {
 		$data        = json_decode( $body, true );
 
 		if ( 200 !== $status_code ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw new RuntimeException( 'Ollama AI Error: ' . ( $data['error'] ?? 'Unknown error' ) );
 		}
 
-		// Extract content from response
+		// Extract content from response.
 		$content = $data['response'] ?? '';
 		$json    = json_decode( $content, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			// Fallback: try to clean markdown code blocks
+			// Fallback: try to clean markdown code blocks.
 			$content = preg_replace( '/^```json|```$/m', '', $content );
 			$json    = json_decode( trim( $content ), true );
 		}
 
 		if ( ! is_array( $json ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw new RuntimeException( 'Failed to parse Ollama response as JSON.' );
 		}
 

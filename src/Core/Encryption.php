@@ -1,4 +1,9 @@
 <?php
+/**
+ * Encryption utility for securing sensitive data.
+ *
+ * @package CompetitorKnowledge
+ */
 
 declare(strict_types=1);
 
@@ -24,7 +29,7 @@ class Encryption {
 	 * @return string
 	 */
 	private static function get_key(): string {
-		// Use WordPress salts for key derivation
+		// Use WordPress salts for key derivation.
 		$salt = defined( 'SECURE_AUTH_SALT' ) ? SECURE_AUTH_SALT : 'competitor-knowledge-fallback-salt';
 		return hash( 'sha256', $salt, true );
 	}
@@ -46,7 +51,7 @@ class Encryption {
 
 		$encrypted = openssl_encrypt( $data, self::METHOD, $key, 0, $iv );
 
-		// Combine IV and encrypted data, then base64 encode
+		// Combine IV and encrypted data, then base64 encode.
 		return base64_encode( $iv . $encrypted ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 	}
 
@@ -62,24 +67,24 @@ class Encryption {
 			return '';
 		}
 
-		// Check if data is encrypted (base64 encoded)
+		// Check if data is encrypted (base64 encoded).
 		$decoded = base64_decode( $data, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 		if ( false === $decoded ) {
-			// Not base64, assume it's plain text (backward compatibility)
+			// Not base64, assume it's plain text (backward compatibility).
 			return $data;
 		}
 
 		$key     = self::get_key();
 		$iv_size = openssl_cipher_iv_length( self::METHOD );
 
-		// Extract IV and encrypted data
+		// Extract IV and encrypted data.
 		$iv        = substr( $decoded, 0, $iv_size );
 		$encrypted = substr( $decoded, $iv_size );
 
 		$decrypted = openssl_decrypt( $encrypted, self::METHOD, $key, 0, $iv );
 
-		// If decryption fails, return original (might be unencrypted)
+		// If decryption fails, return original (might be unencrypted).
 		return false !== $decrypted ? $decrypted : $data;
 	}
 

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Analysis Custom Post Type registration.
+ *
+ * @package CompetitorKnowledge
+ */
 
 declare(strict_types=1);
 
@@ -50,7 +55,7 @@ class AnalysisCPT {
 			'has_archive'        => false,
 			'hierarchical'       => false,
 			'menu_position'      => null,
-			'supports'           => array( 'title' ), // We store data in meta
+			'supports'           => array( 'title' ), // We store data in meta.
 		);
 
 		register_post_type( self::POST_TYPE, $args );

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Main Analyzer class for competitor analysis.
+ *
+ * @package CompetitorKnowledge
+ */
 
 declare(strict_types=1);
 
@@ -82,6 +87,7 @@ class Analyzer {
 
 		if ( ! $product ) {
 			$this->repository->update_status( $analysis_id, 'failed' );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw new Exception( "Target product #{$product_id} not found." );
 		}
 
@@ -111,10 +117,10 @@ class Analyzer {
 
 			$analysis_result = $this->ai_provider->analyze( $prompt, $context );
 
-			// 5. Save Results
+			// 5. Store results.
 			$this->repository->save_results( $analysis_id, $analysis_result->to_array() );
 
-			// 6. Log Price History
+			// 6. Log Price History.
 			$insights = $analysis_result->get_insights();
 			if ( ! empty( $insights['competitors'] ) ) {
 				foreach ( $insights['competitors'] as $comp ) {
@@ -136,7 +142,7 @@ class Analyzer {
 			}
 		} catch ( Exception $e ) {
 			$this->repository->update_status( $analysis_id, 'failed' );
-			// Log error via Action Scheduler or WP Log
+			// Log error via Action Scheduler or WP Log.
 			error_log( 'Analysis Failed: ' . $e->getMessage() ); // phpcs:ignore
 			throw $e;
 		}
@@ -178,12 +184,14 @@ class Analyzer {
 		$diff_percent = ( ( $my_price - $competitor_price ) / $my_price ) * 100;
 
 		if ( $diff_percent >= $threshold ) {
+			/* translators: 1: Product name, 2: Competitor name */
 			$subject = sprintf(
 				__( 'Price Alert: %1$s is cheaper at %2$s', 'competitor-knowledge' ),
 				$product->get_name(),
 				$competitor_name
 			);
 
+			/* translators: 1: Product name, 2: Product price, 3: Competitor name, 4: Competitor price, 5: Price difference percentage */
 			$message = sprintf(
 				__( "Alert!\n\nYour Product: %1\$s\nYour Price: %2\$s\n\nCompetitor: %3\$s\nCompetitor Price: %4\$s\nDifference: %5\$s%%\n\nLogin to view details.", 'competitor-knowledge' ),
 				$product->get_name(),
