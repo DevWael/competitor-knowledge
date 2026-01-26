@@ -50,8 +50,8 @@ class OllamaProvider implements AIProviderInterface {
 	/**
 	 * Analyze context using Ollama.
 	 *
-	 * @param string $prompt  The instruction.
-	 * @param array<string, mixed>  $context The context data.
+	 * @param string               $prompt  The instruction.
+	 * @param array<string, mixed> $context The context data.
 	 *
 	 * @return AnalysisResult
 	 * @throws RuntimeException If the API request fails.
@@ -69,9 +69,9 @@ class OllamaProvider implements AIProviderInterface {
 			'format'  => 'json',
 			'stream'  => false,
 			'options' => array(
-				'num_ctx'     => 8192,  // Extended context window
-				'temperature' => 0.7,   // Balanced creativity
-				'top_p'       => 0.9,   // Nucleus sampling
+				'num_ctx'     => 8192,  // Extended context window.
+				'temperature' => 0.7,   // Balanced creativity.
+				'top_p'       => 0.9,   // Nucleus sampling.
 			),
 		);
 

@@ -82,7 +82,7 @@ class AnalysisRepository {
 	/**
 	 * Store analysis results.
 	 *
-	 * @param int   $analysis_id The Analysis ID.
+	 * @param int                  $analysis_id The Analysis ID.
 	 * @param array<string, mixed> $data        The structured analysis data.
 	 */
 	public function save_results( int $analysis_id, array $data ): void {

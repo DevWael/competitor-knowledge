@@ -55,8 +55,8 @@ class GoogleGeminiProvider implements AIProviderInterface {
 	/**
 	 * Analyze context using Google Gemini.
 	 *
-	 * @param string $prompt  The instruction.
-	 * @param array<string, mixed>  $context The context context.
+	 * @param string               $prompt  The instruction.
+	 * @param array<string, mixed> $context The context context.
 	 *
 	 * @return AnalysisResult
 	 * @throws RuntimeException If the API request fails.

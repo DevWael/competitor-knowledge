@@ -50,8 +50,8 @@ class OpenRouterProvider implements AIProviderInterface {
 	/**
 	 * Analyze context using OpenRouter.
 	 *
-	 * @param string $prompt  The instruction.
-	 * @param array<string, mixed>  $context The context data.
+	 * @param string               $prompt  The instruction.
+	 * @param array<string, mixed> $context The context data.
 	 *
 	 * @return AnalysisResult
 	 * @throws RuntimeException If the API request fails.

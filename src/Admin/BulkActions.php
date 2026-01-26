@@ -45,8 +45,8 @@ class BulkActions {
 	/**
 	 * Handle the bulk action.
 	 *
-	 * @param string $redirect_to The redirect URL.
-	 * @param string $action      The action name.
+	 * @param string     $redirect_to The redirect URL.
+	 * @param string     $action      The action name.
 	 * @param array<int> $post_ids    The product IDs.
 	 *
 	 * @return string
