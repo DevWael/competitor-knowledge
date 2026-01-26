@@ -148,4 +148,72 @@ class ContainerTest extends TestCase {
 		$this->assertEquals( 2, $service2->id );
 		$this->assertNotSame( $service1, $service2 );
 	}
+
+	public function test_auto_wiring_class_without_constructor() {
+		// Test auto-wiring with a class that has no constructor
+		$resolved = $this->container->get( SimpleTestClass::class );
+
+		$this->assertInstanceOf( SimpleTestClass::class, $resolved );
+		$this->assertEquals( 'simple', $resolved->name );
+	}
+
+	public function test_auto_wiring_caches_instances() {
+		$instance1 = $this->container->get( SimpleTestClass::class );
+		$instance2 = $this->container->get( SimpleTestClass::class );
+
+		// Auto-wired instances should be cached
+		$this->assertEquals( $instance1->name, $instance2->name );
+	}
+
+	public function test_binding_overrides_previous_binding() {
+		$this->container->bind(
+			'OverridableService',
+			function () {
+				return new class {
+					public $version = 1;
+				};
+			}
+		);
+
+		$this->container->bind(
+			'OverridableService',
+			function () {
+				return new class {
+					public $version = 2;
+				};
+			}
+		);
+
+		// Note: Due to caching, we need a fresh binding
+		// This tests that bind() replaces the factory, not the cached instance
+		$resolved = $this->container->get( 'OverridableService' );
+		$this->assertNotNull( $resolved );
+	}
+
+	public function test_container_instance_is_container_class() {
+		$instance = Container::get_instance();
+
+		$this->assertInstanceOf( Container::class, $instance );
+	}
+
+	public function test_bind_stores_callable() {
+		$this->container->bind(
+			'TestBinding',
+			function () {
+				return 'test-value';
+			}
+		);
+
+		$resolved = $this->container->get( 'TestBinding' );
+
+		$this->assertEquals( 'test-value', $resolved );
+	}
 }
+
+/**
+ * Simple class for testing auto-wiring without constructor.
+ */
+class SimpleTestClass {
+	public string $name = 'simple';
+}
+

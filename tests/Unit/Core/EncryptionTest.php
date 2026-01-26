@@ -116,4 +116,52 @@ class EncryptionTest extends TestCase {
 		// Should return original if decryption fails
 		$this->assertEquals( $invalid, $result );
 	}
+
+	public function test_encrypt_long_string() {
+		$long_plaintext = str_repeat( 'a', 1000 );
+		$encrypted      = Encryption::encrypt( $long_plaintext );
+		$decrypted      = Encryption::decrypt( $encrypted );
+
+		$this->assertEquals( $long_plaintext, $decrypted );
+	}
+
+	public function test_encrypt_short_string() {
+		$short_plaintext = 'a';
+		$encrypted       = Encryption::encrypt( $short_plaintext );
+		$decrypted       = Encryption::decrypt( $encrypted );
+
+		$this->assertEquals( $short_plaintext, $decrypted );
+	}
+
+	public function test_is_encrypted_with_null_bytes() {
+		// Test that is_encrypted handles strings with null bytes
+		$weird_string = "test\x00string";
+		$this->assertFalse( Encryption::is_encrypted( $weird_string ) );
+	}
+
+	public function test_encrypt_decrypt_with_whitespace() {
+		$whitespace = "  spaces and\ttabs\nand\nnewlines  ";
+		$encrypted  = Encryption::encrypt( $whitespace );
+		$decrypted  = Encryption::decrypt( $encrypted );
+
+		$this->assertEquals( $whitespace, $decrypted );
+	}
+
+	public function test_is_encrypted_returns_false_for_short_base64() {
+		// Short base64 strings shouldn't be considered encrypted
+		$short_base64 = base64_encode( 'short' );
+		$this->assertFalse( Encryption::is_encrypted( $short_base64 ) );
+	}
+
+	public function test_encrypt_returns_string_type() {
+		$encrypted = Encryption::encrypt( 'test' );
+		$this->assertIsString( $encrypted );
+	}
+
+	public function test_decrypt_returns_string_type() {
+		$encrypted = Encryption::encrypt( 'test' );
+		$decrypted = Encryption::decrypt( $encrypted );
+		$this->assertIsString( $decrypted );
+	}
 }
+
