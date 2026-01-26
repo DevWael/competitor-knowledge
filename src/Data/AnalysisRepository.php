@@ -57,6 +57,7 @@ class AnalysisRepository {
 			)
 		);
 
+		//phpcs:ignore Generic.Commenting.DocComment.MissingShort
 		/** @phpstan-ignore-next-line - Defensive check for edge cases */
 		if ( is_wp_error( $post_id ) ) {
 			throw new InvalidArgumentException( 'Failed to create analysis post.' );
