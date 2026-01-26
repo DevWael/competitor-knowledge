@@ -64,10 +64,15 @@ class OllamaProvider implements AIProviderInterface {
 		$full_prompt = "Context data: \n" . $context_str . "\n\nInstructions: \n" . $prompt . "\n\nReturn strictly valid minified JSON without markdown formatting.";
 
 		$body = array(
-			'model'  => $this->model,
-			'prompt' => $full_prompt,
-			'format' => 'json',
-			'stream' => false,
+			'model'   => $this->model,
+			'prompt'  => $full_prompt,
+			'format'  => 'json',
+			'stream'  => false,
+			'options' => array(
+				'num_ctx'     => 8192,  // Extended context window
+				'temperature' => 0.7,   // Balanced creativity
+				'top_p'       => 0.9,   // Nucleus sampling
+			),
 		);
 
 		$json_body = wp_json_encode( $body );
