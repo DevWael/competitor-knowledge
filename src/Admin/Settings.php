@@ -35,9 +35,9 @@ class Settings {
 	/**
 	 * Encrypt API keys before saving.
 	 *
-	 * @param array $new_value The new option value.
+	 * @param array<string, mixed> $new_value The new option value.
 	 *
-	 * @return array
+	 * @return array<string, mixed>
 	 */
 	public function encrypt_api_keys( $new_value ): array {
 		if ( ! is_array( $new_value ) ) {
@@ -236,7 +236,7 @@ class Settings {
 	/**
 	 * Render a checkbox field.
 	 *
-	 * @param array $args Field arguments.
+	 * @param array<string, mixed> $args Field arguments.
 	 */
 	public function render_field_checkbox( array $args ): void {
 		$options = get_option( self::OPTION_NAME );
@@ -250,7 +250,7 @@ class Settings {
 	/**
 	 * Render a number field.
 	 *
-	 * @param array $args Field arguments.
+	 * @param array<string, mixed> $args Field arguments.
 	 */
 	public function render_field_number( array $args ): void {
 		$options = get_option( self::OPTION_NAME );
@@ -265,7 +265,7 @@ class Settings {
 	/**
 	 * Render a select field.
 	 *
-	 * @param array $args Field arguments.
+	 * @param array<string, mixed> $args Field arguments.
 	 */
 	public function render_field_select( array $args ): void {
 		$options        = get_option( self::OPTION_NAME );
@@ -324,7 +324,7 @@ class Settings {
 	/**
 	 * Render a text field.
 	 *
-	 * @param array $args Field arguments.
+	 * @param array<string, mixed> $args Field arguments.
 	 */
 	public function render_field_text( array $args ): void {
 		$options     = get_option( self::OPTION_NAME );

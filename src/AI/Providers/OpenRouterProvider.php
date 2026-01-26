@@ -51,7 +51,7 @@ class OpenRouterProvider implements AIProviderInterface {
 	 * Analyze context using OpenRouter.
 	 *
 	 * @param string $prompt  The instruction.
-	 * @param array  $context The context data.
+	 * @param array<string, mixed>  $context The context data.
 	 *
 	 * @return AnalysisResult
 	 * @throws RuntimeException If the API request fails.
@@ -73,6 +73,11 @@ class OpenRouterProvider implements AIProviderInterface {
 			),
 		);
 
+		$json_body = wp_json_encode( $body );
+		if ( false === $json_body ) {
+			throw new RuntimeException( 'Failed to encode request body.' );
+		}
+
 		$response = wp_remote_post(
 			$url,
 			array(
@@ -81,7 +86,7 @@ class OpenRouterProvider implements AIProviderInterface {
 					'Authorization' => 'Bearer ' . $this->api_key,
 					'HTTP-Referer'  => home_url(),
 				),
-				'body'    => wp_json_encode( $body ),
+				'body'    => $json_body,
 				'timeout' => 60,
 			)
 		);

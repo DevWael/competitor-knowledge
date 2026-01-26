@@ -51,7 +51,7 @@ class OllamaProvider implements AIProviderInterface {
 	 * Analyze context using Ollama.
 	 *
 	 * @param string $prompt  The instruction.
-	 * @param array  $context The context data.
+	 * @param array<string, mixed>  $context The context data.
 	 *
 	 * @return AnalysisResult
 	 * @throws RuntimeException If the API request fails.
@@ -70,13 +70,18 @@ class OllamaProvider implements AIProviderInterface {
 			'stream' => false,
 		);
 
+		$json_body = wp_json_encode( $body );
+		if ( false === $json_body ) {
+			throw new RuntimeException( 'Failed to encode request body.' );
+		}
+
 		$response = wp_remote_post(
 			$url,
 			array(
 				'headers' => array(
 					'Content-Type' => 'application/json',
 				),
-				'body'    => wp_json_encode( $body ),
+				'body'    => $json_body,
 				'timeout' => 120, // Ollama can be slower.
 			)
 		);

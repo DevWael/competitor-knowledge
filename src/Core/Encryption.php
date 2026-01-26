@@ -46,8 +46,12 @@ class Encryption {
 			return '';
 		}
 
-		$key = self::get_key();
-		$iv  = openssl_random_pseudo_bytes( openssl_cipher_iv_length( self::METHOD ) );
+		$key       = self::get_key();
+		$iv_length = openssl_cipher_iv_length( self::METHOD );
+		if ( false === $iv_length ) {
+			return '';
+		}
+		$iv = openssl_random_pseudo_bytes( $iv_length );
 
 		$encrypted = openssl_encrypt( $data, self::METHOD, $key, 0, $iv );
 
@@ -75,12 +79,15 @@ class Encryption {
 			return $data;
 		}
 
-		$key     = self::get_key();
-		$iv_size = openssl_cipher_iv_length( self::METHOD );
+		$key       = self::get_key();
+		$iv_length = openssl_cipher_iv_length( self::METHOD );
+		if ( false === $iv_length ) {
+			return $data;
+		}
 
 		// Extract IV and encrypted data.
-		$iv        = substr( $decoded, 0, $iv_size );
-		$encrypted = substr( $decoded, $iv_size );
+		$iv        = substr( $decoded, 0, $iv_length );
+		$encrypted = substr( $decoded, $iv_length );
 
 		$decrypted = openssl_decrypt( $encrypted, self::METHOD, $key, 0, $iv );
 

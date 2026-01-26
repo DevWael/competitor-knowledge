@@ -21,14 +21,14 @@ class SearchResults {
 	/**
 	 * List of search result items.
 	 *
-	 * @var array
+	 * @var array<int, array<string, mixed>>
 	 */
 	private array $results;
 
 	/**
 	 * SearchResults constructor.
 	 *
-	 * @param array $results Array of search result items (e.g., ['url' => ..., 'content' => ...]).
+	 * @param array<int, array<string, mixed>> $results Array of search result items (e.g., ['url' => ..., 'content' => ...]).
 	 */
 	public function __construct( array $results ) {
 		$this->results = $results;
@@ -37,7 +37,7 @@ class SearchResults {
 	/**
 	 * Get the search results.
 	 *
-	 * @return array
+	 * @return array<int, array<string, mixed>>
 	 */
 	public function get_results(): array {
 		return $this->results;

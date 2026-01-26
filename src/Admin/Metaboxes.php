@@ -105,10 +105,10 @@ class Metaboxes {
 							$edit_link = get_edit_post_link( $analysis->ID );
 							?>
 							<tr>
-								<td><?php echo esc_html( get_the_date( '', $analysis ) ); ?></td>
-								<td><?php echo esc_html( ucfirst( $status ) ); ?></td>
+								<td><?php echo esc_html( (string) get_the_date( '', $analysis ) ); ?></td>
+								<td><?php echo esc_html( ucfirst( (string) $status ) ); ?></td>
 								<td>
-									<a href="<?php echo esc_url( $edit_link ); ?>" class="button button-small">
+									<a href="<?php echo esc_url( (string) $edit_link ); ?>" class="button button-small">
 										<?php esc_html_e( 'View Report', 'competitor-knowledge' ); ?>
 									</a>
 								</td>

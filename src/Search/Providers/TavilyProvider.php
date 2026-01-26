@@ -63,13 +63,18 @@ class TavilyProvider implements SearchProviderInterface {
 			'max_results'         => $limit,
 		);
 
+		$json_body = wp_json_encode( $body );
+		if ( false === $json_body ) {
+			throw new RuntimeException( 'Failed to encode request body.' );
+		}
+
 		$response = wp_remote_post(
 			self::API_URL,
 			array(
 				'headers' => array(
 					'Content-Type' => 'application/json',
 				),
-				'body'    => wp_json_encode( $body ),
+				'body'    => $json_body,
 				'timeout' => 30,
 			)
 		);

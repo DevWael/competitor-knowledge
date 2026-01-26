@@ -24,7 +24,7 @@ interface AIProviderInterface {
 	 * Analyze the provided context and return structured insights.
 	 *
 	 * @param string $prompt  The instruction prompt for the AI.
-	 * @param array  $context The context data (e.g., search results, product details).
+	 * @param array<string, mixed>  $context The context data (e.g., search results, product details).
 	 *
 	 * @return AnalysisResult The structured analysis result.
 	 *

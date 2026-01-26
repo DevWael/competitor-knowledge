@@ -83,7 +83,7 @@ class AnalysisRepository {
 	 * Store analysis results.
 	 *
 	 * @param int   $analysis_id The Analysis ID.
-	 * @param array $data        The structured analysis data.
+	 * @param array<string, mixed> $data        The structured analysis data.
 	 */
 	public function save_results( int $analysis_id, array $data ): void {
 		update_post_meta( $analysis_id, self::META_DATA, $data );
@@ -95,7 +95,7 @@ class AnalysisRepository {
 	 *
 	 * @param int $analysis_id The Analysis ID.
 	 *
-	 * @return array|null The data or null if not found.
+	 * @return array<string, mixed>|null The data or null if not found.
 	 */
 	public function get_results( int $analysis_id ): ?array {
 		$data = get_post_meta( $analysis_id, self::META_DATA, true );

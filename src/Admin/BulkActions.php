@@ -33,9 +33,9 @@ class BulkActions {
 	/**
 	 * Register the bulk action.
 	 *
-	 * @param array $bulk_actions Existing bulk actions.
+	 * @param array<string, string> $bulk_actions Existing bulk actions.
 	 *
-	 * @return array
+	 * @return array<string, string>
 	 */
 	public function register_bulk_action( array $bulk_actions ): array {
 		$bulk_actions['ck_run_analysis'] = __( 'Run Competitor Analysis', 'competitor-knowledge' );
@@ -47,7 +47,7 @@ class BulkActions {
 	 *
 	 * @param string $redirect_to The redirect URL.
 	 * @param string $action      The action name.
-	 * @param array  $post_ids    The product IDs.
+	 * @param array<int> $post_ids    The product IDs.
 	 *
 	 * @return string
 	 */

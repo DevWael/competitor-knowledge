@@ -21,14 +21,14 @@ class AnalysisResult {
 	/**
 	 * Verified competitor insights.
 	 *
-	 * @var array
+	 * @var array<string, mixed>
 	 */
 	private array $insights;
 
 	/**
 	 * AnalysisResult constructor.
 	 *
-	 * @param array $insights Structured data returned by the AI.
+	 * @param array<string, mixed> $insights Structured data returned by the AI.
 	 */
 	public function __construct( array $insights ) {
 		$this->insights = $insights;
@@ -37,7 +37,7 @@ class AnalysisResult {
 	/**
 	 * Get the structured insights.
 	 *
-	 * @return array
+	 * @return array<string, mixed>
 	 */
 	public function get_insights(): array {
 		return $this->insights;
@@ -46,7 +46,7 @@ class AnalysisResult {
 	/**
 	 * Convert the result to an array.
 	 *
-	 * @return array
+	 * @return array<string, mixed>
 	 */
 	public function to_array(): array {
 		return $this->insights;

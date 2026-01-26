@@ -66,7 +66,7 @@ class PriceHistoryRepository {
 	 *
 	 * @param int $product_id Product ID.
 	 *
-	 * @return array List of records.
+	 * @return array<int, array<string, mixed>> List of records.
 	 */
 	public function get_history( int $product_id ): array {
 		global $wpdb;

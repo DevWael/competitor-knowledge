@@ -153,7 +153,7 @@ class Analyzer {
 	 *
 	 * @param WC_Product $product The product.
 	 *
-	 * @return array
+	 * @return array<string, mixed>
 	 */
 	private function get_product_data( WC_Product $product ): array {
 		return array(

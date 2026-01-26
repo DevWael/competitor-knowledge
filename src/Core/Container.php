@@ -32,14 +32,14 @@ class Container {
 	/**
 	 * Bindings.
 	 *
-	 * @var array
+	 * @var array<string, callable>
 	 */
 	private array $bindings = array();
 
 	/**
 	 * Resolved instances.
 	 *
-	 * @var array
+	 * @var array<string, object>
 	 */
 	private array $instances = array();
 
