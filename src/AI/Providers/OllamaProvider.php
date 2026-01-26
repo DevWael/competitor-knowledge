@@ -58,22 +58,22 @@ class OllamaProvider implements AIProviderInterface {
 		$context_str = wp_json_encode( $context );
 		$full_prompt = "Context data: \n" . $context_str . "\n\nInstructions: \n" . $prompt . "\n\nReturn strictly valid minified JSON without markdown formatting.";
 
-		$body = [
+		$body = array(
 			'model'  => $this->model,
 			'prompt' => $full_prompt,
 			'format' => 'json',
 			'stream' => false,
-		];
+		);
 
 		$response = wp_remote_post(
 			$url,
-			[
-				'headers' => [
+			array(
+				'headers' => array(
 					'Content-Type' => 'application/json',
-				],
+				),
 				'body'    => wp_json_encode( $body ),
 				'timeout' => 120, // Ollama can be slower
-			]
+			)
 		);
 
 		if ( is_wp_error( $response ) ) {

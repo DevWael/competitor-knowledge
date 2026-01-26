@@ -20,7 +20,7 @@ class Ajax {
 	 * Initialize AJAX hooks.
 	 */
 	public function init(): void {
-		add_action( 'wp_ajax_ck_run_analysis', [ $this, 'run_analysis' ] );
+		add_action( 'wp_ajax_ck_run_analysis', array( $this, 'run_analysis' ) );
 	}
 
 	/**
@@ -45,12 +45,12 @@ class Ajax {
 
 			// Schedule the job
 			if ( function_exists( 'as_schedule_single_action' ) ) {
-				as_schedule_single_action( time(), AnalysisJob::ACTION, [ 'analysis_id' => $analysis_id ] );
+				as_schedule_single_action( time(), AnalysisJob::ACTION, array( 'analysis_id' => $analysis_id ) );
 			} else {
 				throw new \Exception( 'Action Scheduler not available.' );
 			}
 
-			wp_send_json_success( [ 'message' => __( 'Analysis started successfully.', 'competitor-knowledge' ) ] );
+			wp_send_json_success( array( 'message' => __( 'Analysis started successfully.', 'competitor-knowledge' ) ) );
 		} catch ( \Exception $e ) {
 			wp_send_json_error( $e->getMessage() );
 		}

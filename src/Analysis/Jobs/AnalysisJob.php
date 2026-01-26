@@ -26,7 +26,7 @@ class AnalysisJob {
 	 * Initialize the job listener.
 	 */
 	public static function init(): void {
-		add_action( self::ACTION, [ self::class, 'handle' ] );
+		add_action( self::ACTION, array( self::class, 'handle' ) );
 	}
 
 	/**

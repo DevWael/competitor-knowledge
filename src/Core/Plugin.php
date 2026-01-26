@@ -45,40 +45,58 @@ class Plugin {
 	 */
 	private function register_services(): void {
 		// Bind Settings
-		$this->container->bind( Settings::class, function () {
-			return new Settings();
-		} );
+		$this->container->bind(
+			Settings::class,
+			function () {
+				return new Settings();
+			}
+		);
 
 		// Bind Search Provider
-		$this->container->bind( \CompetitorKnowledge\Search\Contracts\SearchProviderInterface::class, function () {
-			$api_key = Settings::get_decrypted( 'tavily_api_key' );
-			return new \CompetitorKnowledge\Search\Providers\TavilyProvider( $api_key );
-		} );
+		$this->container->bind(
+			\CompetitorKnowledge\Search\Contracts\SearchProviderInterface::class,
+			function () {
+				$api_key = Settings::get_decrypted( 'tavily_api_key' );
+				return new \CompetitorKnowledge\Search\Providers\TavilyProvider( $api_key );
+			}
+		);
 
 		// Bind AI Provider
-		$this->container->bind( \CompetitorKnowledge\AI\Contracts\AIProviderInterface::class, function () {
-			$options     = get_option( Settings::OPTION_NAME );
-			$provider    = $options['ai_provider'] ?? 'google';
-			$google_key  = Settings::get_decrypted( 'google_api_key' );
-			$ollama_url  = $options['ollama_url'] ?? 'http://localhost:11434';
+		$this->container->bind(
+			\CompetitorKnowledge\AI\Contracts\AIProviderInterface::class,
+			function () {
+				$options        = get_option( Settings::OPTION_NAME );
+				$provider       = $options['ai_provider'] ?? 'google';
+				$google_key     = Settings::get_decrypted( 'google_api_key' );
+				$openrouter_key = Settings::get_decrypted( 'openrouter_api_key' );
+				$ollama_url     = $options['ollama_url'] ?? 'http://localhost:11434';
+				$model_name     = $options['model_name'] ?? 'gemini-2.0-flash-exp';
 
-			if ( 'ollama' === $provider ) {
-				return new \CompetitorKnowledge\AI\Providers\OllamaProvider( $ollama_url );
+				if ( 'ollama' === $provider ) {
+					return new \CompetitorKnowledge\AI\Providers\OllamaProvider( $ollama_url, $model_name );
+				}
+
+				if ( 'openrouter' === $provider ) {
+					return new \CompetitorKnowledge\AI\Providers\OpenRouterProvider( $openrouter_key, $model_name );
+				}
+
+				// Default to Google
+				return new \CompetitorKnowledge\AI\Providers\GoogleGeminiProvider( $google_key, $model_name );
 			}
-
-			// Default to Google
-			return new \CompetitorKnowledge\AI\Providers\GoogleGeminiProvider( $google_key );
-		} );
+		);
 
 		// Bind Analyzer
-		$this->container->bind( \CompetitorKnowledge\Analysis\Analyzer::class, function ( $c ) {
-			return new \CompetitorKnowledge\Analysis\Analyzer(
-				$c->get( \CompetitorKnowledge\Search\Contracts\SearchProviderInterface::class ),
-				$c->get( \CompetitorKnowledge\AI\Contracts\AIProviderInterface::class ),
-				new \CompetitorKnowledge\Data\AnalysisRepository(),
-				new \CompetitorKnowledge\Data\PriceHistoryRepository()
-			);
-		} );
+		$this->container->bind(
+			\CompetitorKnowledge\Analysis\Analyzer::class,
+			function ( $c ) {
+				return new \CompetitorKnowledge\Analysis\Analyzer(
+					$c->get( \CompetitorKnowledge\Search\Contracts\SearchProviderInterface::class ),
+					$c->get( \CompetitorKnowledge\AI\Contracts\AIProviderInterface::class ),
+					new \CompetitorKnowledge\Data\AnalysisRepository(),
+					new \CompetitorKnowledge\Data\PriceHistoryRepository()
+				);
+			}
+		);
 	}
 
 	/**
@@ -86,7 +104,7 @@ class Plugin {
 	 */
 	private function register_hooks(): void {
 		// Register CPT
-		add_action( 'init', [ $this, 'register_cpt' ] );
+		add_action( 'init', array( $this, 'register_cpt' ) );
 
 		// Register Admin UI (Settings, Metaboxes, Ajax)
 		if ( is_admin() ) {
@@ -101,7 +119,7 @@ class Plugin {
 		\CompetitorKnowledge\Analysis\Jobs\ScheduledAnalysisJob::init();
 
 		// Assets
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
 	/**
@@ -116,23 +134,27 @@ class Plugin {
 	 */
 	public function enqueue_assets(): void {
 		// Chart.js for Price History
-		wp_enqueue_script( 'chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', [], '4.4.1', true );
+		wp_enqueue_script( 'chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '4.4.1', true );
 		// Chart.js Date Adapter (required for 'time' scale)
-		wp_enqueue_script( 'chart-js-adapter', 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js', [ 'chart-js' ], '3.0.0', true );
+		wp_enqueue_script( 'chart-js-adapter', 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js', array( 'chart-js' ), '3.0.0', true );
 
 		wp_enqueue_script(
 			'ck-admin-js',
 			COMPETITOR_KNOWLEDGE_URL . 'assets/js/admin.min.js',
-			[ 'jquery' ],
+			array( 'jquery' ),
 			COMPETITOR_KNOWLEDGE_VERSION,
 			true
 		);
 
-		wp_localize_script( 'ck-admin-js', 'ck_vars', [
-			'ajax_url'     => admin_url( 'admin-ajax.php' ),
-			'nonce'        => wp_create_nonce( 'ck_nonce' ),
-			'running_text' => __( 'Starting...', 'competitor-knowledge' ),
-			'btn_text'     => __( 'Run New Analysis', 'competitor-knowledge' ),
-		] );
+		wp_localize_script(
+			'ck-admin-js',
+			'ck_vars',
+			array(
+				'ajax_url'     => admin_url( 'admin-ajax.php' ),
+				'nonce'        => wp_create_nonce( 'ck_nonce' ),
+				'running_text' => __( 'Starting...', 'competitor-knowledge' ),
+				'btn_text'     => __( 'Run New Analysis', 'competitor-knowledge' ),
+			)
+		);
 	}
 }

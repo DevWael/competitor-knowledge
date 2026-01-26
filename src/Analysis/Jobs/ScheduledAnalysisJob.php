@@ -25,8 +25,8 @@ class ScheduledAnalysisJob {
 	 * Initialize the job.
 	 */
 	public static function init(): void {
-		add_action( self::ACTION, [ self::class, 'handle' ] );
-		add_action( 'init', [ self::class, 'schedule_recurring_job' ] );
+		add_action( self::ACTION, array( self::class, 'handle' ) );
+		add_action( 'init', array( self::class, 'schedule_recurring_job' ) );
 	}
 
 	/**
@@ -66,11 +66,11 @@ class ScheduledAnalysisJob {
 	 * @return int
 	 */
 	private static function get_interval( string $frequency ): int {
-		$intervals = [
+		$intervals = array(
 			'daily'   => DAY_IN_SECONDS,
 			'weekly'  => WEEK_IN_SECONDS,
 			'monthly' => MONTH_IN_SECONDS,
-		];
+		);
 
 		return $intervals[ $frequency ] ?? WEEK_IN_SECONDS;
 	}
@@ -80,24 +80,24 @@ class ScheduledAnalysisJob {
 	 */
 	public static function handle(): void {
 		$options    = get_option( Settings::OPTION_NAME );
-		$categories = $options['scheduled_analysis_categories'] ?? [];
+		$categories = $options['scheduled_analysis_categories'] ?? array();
 
 		// Get products to analyze
-		$args = [
+		$args = array(
 			'post_type'      => 'product',
 			'posts_per_page' => 50, // Limit per run
 			'post_status'    => 'publish',
 			'fields'         => 'ids',
-		];
+		);
 
 		if ( ! empty( $categories ) ) {
-			$args['tax_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-				[
+			$args['tax_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+				array(
 					'taxonomy' => 'product_cat',
 					'field'    => 'term_id',
 					'terms'    => $categories,
-				],
-			];
+				),
+			);
 		}
 
 		$product_ids = get_posts( $args );
@@ -114,7 +114,7 @@ class ScheduledAnalysisJob {
 
 				// Schedule individual analysis job
 				if ( function_exists( 'as_schedule_single_action' ) ) {
-					as_schedule_single_action( time() + 60, AnalysisJob::ACTION, [ 'analysis_id' => $analysis_id ] );
+					as_schedule_single_action( time() + 60, AnalysisJob::ACTION, array( 'analysis_id' => $analysis_id ) );
 				}
 			} catch ( \Exception $e ) {
 				error_log( 'Scheduled Analysis Error: ' . $e->getMessage() ); // phpcs:ignore

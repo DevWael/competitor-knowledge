@@ -42,15 +42,15 @@ class PriceHistoryRepository {
 
 		return (bool) $wpdb->insert(
 			$this->table_name,
-			[
+			array(
 				'product_id'      => $product_id,
 				'analysis_id'     => $analysis_id,
 				'competitor_name' => sanitize_text_field( $competitor_name ),
 				'price'           => $price,
 				'currency'        => sanitize_text_field( $currency ),
 				'date_recorded'   => current_time( 'mysql' ),
-			],
-			[ '%d', '%d', '%s', '%f', '%s', '%s' ]
+			),
+			array( '%d', '%d', '%s', '%f', '%s', '%s' )
 		);
 	}
 
@@ -72,6 +72,6 @@ class PriceHistoryRepository {
 			ARRAY_A
 		);
 
-		return is_array( $results ) ? $results : [];
+		return is_array( $results ) ? $results : array();
 	}
 }

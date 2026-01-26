@@ -48,25 +48,25 @@ class TavilyProvider implements SearchProviderInterface {
 	 * @throws RuntimeException If the API request fails.
 	 */
 	public function search( string $query, int $limit = 5 ): SearchResults {
-		$body = [
-			'api_key'            => $this->api_key,
-			'query'              => $query,
-			'search_depth'       => 'advanced',
-			'include_answer'     => false,
-			'include_images'     => true,
-			'include_raw_content'=> true,
-			'max_results'        => $limit,
-		];
+		$body = array(
+			'api_key'             => $this->api_key,
+			'query'               => $query,
+			'search_depth'        => 'advanced',
+			'include_answer'      => false,
+			'include_images'      => true,
+			'include_raw_content' => true,
+			'max_results'         => $limit,
+		);
 
 		$response = wp_remote_post(
 			self::API_URL,
-			[
-				'headers' => [
+			array(
+				'headers' => array(
 					'Content-Type' => 'application/json',
-				],
+				),
 				'body'    => wp_json_encode( $body ),
 				'timeout' => 30,
-			]
+			)
 		);
 
 		if ( is_wp_error( $response ) ) {

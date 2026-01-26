@@ -100,10 +100,10 @@ class Analyzer {
 			}
 
 			// 4. AI Analysis
-			$context = [
+			$context = array(
 				'my_product' => $product_data,
 				'web_search' => $search_results->get_results(),
-			];
+			);
 
 			$prompt = "Analyze the search results to find competitors selling the same product. \n" .
 					"Compare prices, specifications, and availability. \n" .
@@ -134,7 +134,6 @@ class Analyzer {
 					}
 				}
 			}
-
 		} catch ( Exception $e ) {
 			$this->repository->update_status( $analysis_id, 'failed' );
 			// Log error via Action Scheduler or WP Log
@@ -151,12 +150,12 @@ class Analyzer {
 	 * @return array
 	 */
 	private function get_product_data( WC_Product $product ): array {
-		return [
+		return array(
 			'name'  => $product->get_name(),
 			'sku'   => $product->get_sku(),
 			'price' => $product->get_price(),
 			'desc'  => wp_strip_all_tags( $product->get_short_description() ),
-		];
+		);
 	}
 
 	/**
@@ -179,14 +178,14 @@ class Analyzer {
 		$diff_percent = ( ( $my_price - $competitor_price ) / $my_price ) * 100;
 
 		if ( $diff_percent >= $threshold ) {
-			$subject = sprintf( 
-				__( 'Price Alert: %s is cheaper at %s', 'competitor-knowledge' ),
+			$subject = sprintf(
+				__( 'Price Alert: %1$s is cheaper at %2$s', 'competitor-knowledge' ),
 				$product->get_name(),
 				$competitor_name
 			);
 
 			$message = sprintf(
-				__( "Alert!\n\nYour Product: %s\nYour Price: %s\n\nCompetitor: %s\nCompetitor Price: %s\nDifference: %s%%\n\nLogin to view details.", 'competitor-knowledge' ),
+				__( "Alert!\n\nYour Product: %1\$s\nYour Price: %2\$s\n\nCompetitor: %3\$s\nCompetitor Price: %4\$s\nDifference: %5\$s%%\n\nLogin to view details.", 'competitor-knowledge' ),
 				$product->get_name(),
 				$my_price,
 				$competitor_name,

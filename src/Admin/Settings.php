@@ -22,9 +22,9 @@ class Settings {
 	 * Initialize the settings.
 	 */
 	public function init(): void {
-		add_action( 'admin_menu', [ $this, 'add_menu_page' ] );
-		add_action( 'admin_init', [ $this, 'register_settings' ] );
-		add_filter( 'pre_update_option_' . self::OPTION_NAME, [ $this, 'encrypt_api_keys' ] );
+		add_action( 'admin_menu', array( $this, 'add_menu_page' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_filter( 'pre_update_option_' . self::OPTION_NAME, array( $this, 'encrypt_api_keys' ) );
 	}
 
 	/**
@@ -40,7 +40,7 @@ class Settings {
 		}
 
 		// Encrypt sensitive fields
-		$sensitive_fields = [ 'google_api_key', 'tavily_api_key' ];
+		$sensitive_fields = array( 'google_api_key', 'tavily_api_key' );
 
 		foreach ( $sensitive_fields as $field ) {
 			if ( ! empty( $new_value[ $field ] ) ) {
@@ -78,7 +78,7 @@ class Settings {
 			__( 'Competitor Knowledge', 'competitor-knowledge' ),
 			'manage_options',
 			'competitor-knowledge',
-			[ $this, 'render_settings_page' ]
+			array( $this, 'render_settings_page' )
 		);
 	}
 
@@ -98,7 +98,7 @@ class Settings {
 		add_settings_field(
 			'ai_provider',
 			__( 'AI Provider', 'competitor-knowledge' ),
-			[ $this, 'render_field_ai_provider' ],
+			array( $this, 'render_field_ai_provider' ),
 			'competitor-knowledge',
 			'ck_general_section'
 		);
@@ -106,31 +106,60 @@ class Settings {
 		add_settings_field(
 			'google_api_key',
 			__( 'Google Only: API Key', 'competitor-knowledge' ),
-			[ $this, 'render_field_text' ],
+			array( $this, 'render_field_text' ),
 			'competitor-knowledge',
 			'ck_general_section',
-			[ 'id' => 'google_api_key' ]
+			array(
+				'id'    => 'google_api_key',
+				'class' => 'ck-field-google',
+			)
 		);
 
 		add_settings_field(
 			'ollama_url',
 			__( 'Ollama Only: API URL', 'competitor-knowledge' ),
-			[ $this, 'render_field_text' ],
+			array( $this, 'render_field_text' ),
 			'competitor-knowledge',
 			'ck_general_section',
-			[
+			array(
 				'id'      => 'ollama_url',
 				'default' => 'http://localhost:11434',
-			]
+				'class'   => 'ck-field-ollama',
+			)
+		);
+
+		add_settings_field(
+			'openrouter_api_key',
+			__( 'OpenRouter Only: API Key', 'competitor-knowledge' ),
+			array( $this, 'render_field_text' ),
+			'competitor-knowledge',
+			'ck_general_section',
+			array(
+				'id'    => 'openrouter_api_key',
+				'class' => 'ck-field-openrouter',
+			)
+		);
+
+		add_settings_field(
+			'model_name',
+			__( 'Model Name', 'competitor-knowledge' ),
+			array( $this, 'render_field_text' ),
+			'competitor-knowledge',
+			'ck_general_section',
+			array(
+				'id'          => 'model_name',
+				'default'     => 'gemini-2.0-flash-exp',
+				'description' => __( 'Google: gemini-2.0-flash-exp | Ollama: llama3 | OpenRouter: anthropic/claude-3.5-sonnet', 'competitor-knowledge' ),
+			)
 		);
 
 		add_settings_field(
 			'tavily_api_key',
 			__( 'Tavily Search API Key', 'competitor-knowledge' ),
-			[ $this, 'render_field_text' ],
+			array( $this, 'render_field_text' ),
 			'competitor-knowledge',
 			'ck_general_section',
-			[ 'id' => 'tavily_api_key' ]
+			array( 'id' => 'tavily_api_key' )
 		);
 
 		// Notification Settings
@@ -144,25 +173,25 @@ class Settings {
 		add_settings_field(
 			'notification_email',
 			__( 'Notification Email', 'competitor-knowledge' ),
-			[ $this, 'render_field_text' ],
+			array( $this, 'render_field_text' ),
 			'competitor-knowledge',
 			'ck_notification_section',
-			[ 
+			array(
 				'id'      => 'notification_email',
 				'default' => get_option( 'admin_email' ),
-			]
+			)
 		);
 
 		add_settings_field(
 			'price_drop_threshold',
 			__( 'Price Drop Threshold (%)', 'competitor-knowledge' ),
-			[ $this, 'render_field_number' ],
+			array( $this, 'render_field_number' ),
 			'competitor-knowledge',
 			'ck_notification_section',
-			[ 
+			array(
 				'id'      => 'price_drop_threshold',
 				'default' => '10',
-			]
+			)
 		);
 
 		// Scheduled Analysis Settings
@@ -176,26 +205,26 @@ class Settings {
 		add_settings_field(
 			'scheduled_analysis_enabled',
 			__( 'Enable Scheduled Analysis', 'competitor-knowledge' ),
-			[ $this, 'render_field_checkbox' ],
+			array( $this, 'render_field_checkbox' ),
 			'competitor-knowledge',
 			'ck_scheduled_section',
-			[ 'id' => 'scheduled_analysis_enabled' ]
+			array( 'id' => 'scheduled_analysis_enabled' )
 		);
 
 		add_settings_field(
 			'scheduled_analysis_frequency',
 			__( 'Frequency', 'competitor-knowledge' ),
-			[ $this, 'render_field_select' ],
+			array( $this, 'render_field_select' ),
 			'competitor-knowledge',
 			'ck_scheduled_section',
-			[
+			array(
 				'id'      => 'scheduled_analysis_frequency',
-				'options' => [
+				'options' => array(
 					'daily'   => __( 'Daily', 'competitor-knowledge' ),
 					'weekly'  => __( 'Weekly', 'competitor-knowledge' ),
 					'monthly' => __( 'Monthly', 'competitor-knowledge' ),
-				],
-			]
+				),
+			)
 		);
 	}
 
@@ -229,6 +258,28 @@ class Settings {
 	}
 
 	/**
+	 * Render a select field.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public function render_field_select( array $args ): void {
+		$options        = get_option( self::OPTION_NAME );
+		$id             = $args['id'];
+		$default        = $args['default'] ?? '';
+		$value          = $options[ $id ] ?? $default;
+		$select_options = $args['options'] ?? array();
+		?>
+		<select name="<?php echo esc_attr( self::OPTION_NAME ); ?>[<?php echo esc_attr( $id ); ?>]">
+			<?php foreach ( $select_options as $option_value => $option_label ) : ?>
+				<option value="<?php echo esc_attr( $option_value ); ?>" <?php selected( $value, $option_value ); ?>>
+					<?php echo esc_html( $option_label ); ?>
+				</option>
+			<?php endforeach; ?>
+		</select>
+		<?php
+	}
+
+	/**
 	 * Render the settings page.
 	 */
 	public function render_settings_page(): void {
@@ -256,9 +307,10 @@ class Settings {
 		$options = get_option( self::OPTION_NAME );
 		$value   = $options['ai_provider'] ?? 'google';
 		?>
-		<select name="<?php echo esc_attr( self::OPTION_NAME ); ?>[ai_provider]">
+		<select name="<?php echo esc_attr( self::OPTION_NAME ); ?>[ai_provider]" id="ck-ai-provider">
 			<option value="google" <?php selected( $value, 'google' ); ?>>Google Gemini</option>
 			<option value="ollama" <?php selected( $value, 'ollama' ); ?>>Ollama (Local)</option>
+			<option value="openrouter" <?php selected( $value, 'openrouter' ); ?>>OpenRouter</option>
 		</select>
 		<p class="description"><?php esc_html_e( 'Select the AI provider to use for analysis.', 'competitor-knowledge' ); ?></p>
 		<?php
@@ -270,12 +322,17 @@ class Settings {
 	 * @param array $args Field arguments.
 	 */
 	public function render_field_text( array $args ): void {
-		$options = get_option( self::OPTION_NAME );
-		$id      = $args['id'];
-		$default = $args['default'] ?? '';
-		$value   = $options[ $id ] ?? $default;
+		$options     = get_option( self::OPTION_NAME );
+		$id          = $args['id'];
+		$default     = $args['default'] ?? '';
+		$value       = $options[ $id ] ?? $default;
+		$class       = $args['class'] ?? '';
+		$description = $args['description'] ?? '';
 		?>
-		<input type="text" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[<?php echo esc_attr( $id ); ?>]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
+		<input type="text" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[<?php echo esc_attr( $id ); ?>]" value="<?php echo esc_attr( $value ); ?>" class="regular-text <?php echo esc_attr( $class ); ?>">
+		<?php if ( $description ) : ?>
+			<p class="description"><?php echo esc_html( $description ); ?></p>
+		<?php endif; ?>
 		<?php
 	}
 }

@@ -21,8 +21,8 @@ class Metaboxes {
 	 * Initialize metaboxes.
 	 */
 	public function init(): void {
-		add_action( 'add_meta_boxes', [ $this, 'add_product_metabox' ] );
-		add_action( 'add_meta_boxes', [ $this, 'add_analysis_metabox' ] );
+		add_action( 'add_meta_boxes', array( $this, 'add_product_metabox' ) );
+		add_action( 'add_meta_boxes', array( $this, 'add_analysis_metabox' ) );
 		// Ensure assets are enqueued for admin
 		// add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
 	}
@@ -34,7 +34,7 @@ class Metaboxes {
 		add_meta_box(
 			'ck_competitor_analysis',
 			__( 'Competitor Analysis', 'competitor-knowledge' ),
-			[ $this, 'render_metabox' ],
+			array( $this, 'render_metabox' ),
 			'product',
 			'normal',
 			'low'
@@ -48,7 +48,7 @@ class Metaboxes {
 		add_meta_box(
 			'ck_analysis_results',
 			__( 'Analysis Results', 'competitor-knowledge' ),
-			[ $this, 'render_results_metabox' ],
+			array( $this, 'render_results_metabox' ),
 			AnalysisCPT::POST_TYPE,
 			'normal',
 			'high'
@@ -63,16 +63,16 @@ class Metaboxes {
 	public function render_metabox( WP_Post $post ): void {
 		// Fetch recent analyses for this product
 		// For now, simpler query. In real app, restrict by meta.
-		$args = [
+		$args = array(
 			'post_type'      => AnalysisCPT::POST_TYPE,
 			'posts_per_page' => 5,
-			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-				[
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				array(
 					'key'   => '_ck_target_product_id',
 					'value' => $post->ID,
-				],
-			],
-		];
+				),
+			),
+		);
 
 		$analyses = get_posts( $args );
 		?>
@@ -94,8 +94,8 @@ class Metaboxes {
 					</thead>
 					<tbody>
 						<?php foreach ( $analyses as $analysis ) : ?>
-							<?php 
-							$status = get_post_meta( $analysis->ID, '_ck_status', true ); 
+							<?php
+							$status = get_post_meta( $analysis->ID, '_ck_status', true );
 							// Logic to get edit link
 							$edit_link = get_edit_post_link( $analysis->ID );
 							?>
@@ -136,14 +136,14 @@ class Metaboxes {
 		if ( $product_id ) {
 			$repo    = new \CompetitorKnowledge\Data\PriceHistoryRepository();
 			$history = $repo->get_history( (int) $product_id );
-			
+
 			if ( ! empty( $history ) ) {
-				$chart_data = [];
+				$chart_data = array();
 				foreach ( $history as $row ) {
-					$chart_data[ $row['competitor_name'] ][] = [
+					$chart_data[ $row['competitor_name'] ][] = array(
 						'x' => $row['date_recorded'],
 						'y' => $row['price'],
-					];
+					);
 				}
 				?>
 				<div class="ck-price-chart-container" style="margin-bottom: 20px;">
@@ -183,7 +183,7 @@ class Metaboxes {
 				<?php
 			}
 		}
-		
+
 		?>
 		<table class="widefat striped">
 			<thead>
@@ -200,8 +200,8 @@ class Metaboxes {
 					<tr>
 						<td><?php echo esc_html( $competitor['name'] ?? 'N/A' ); ?></td>
 						<td>
-							<?php 
-							echo esc_html( $competitor['price'] ?? '' ); 
+							<?php
+							echo esc_html( $competitor['price'] ?? '' );
 							echo ' ' . esc_html( $competitor['currency'] ?? '' );
 							?>
 						</td>

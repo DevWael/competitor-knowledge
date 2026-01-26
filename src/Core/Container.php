@@ -29,14 +29,14 @@ class Container {
 	 *
 	 * @var array
 	 */
-	private array $bindings = [];
+	private array $bindings = array();
 
 	/**
 	 * Resolved instances.
 	 *
 	 * @var array
 	 */
-	private array $instances = [];
+	private array $instances = array();
 
 	/**
 	 * Get the shared instance.
@@ -96,7 +96,7 @@ class Container {
 				return new $abstract();
 			}
 
-			$dependencies = [];
+			$dependencies = array();
 			foreach ( $constructor->getParameters() as $parameter ) {
 				$type = $parameter->getType();
 				if ( null === $type || $type->isBuiltin() ) {
@@ -105,12 +105,12 @@ class Container {
 				$dependencies[] = $this->get( $type->getName() );
 			}
 
-			$instance = $reflector->newInstanceArgs( $dependencies );
+			$instance                     = $reflector->newInstanceArgs( $dependencies );
 			$this->instances[ $abstract ] = $instance;
 
 			return $instance;
 		} catch ( ReflectionException $e ) {
-			throw new Exception( "Reflection error: " . $e->getMessage() );
+			throw new Exception( 'Reflection error: ' . $e->getMessage() );
 		}
 	}
 }

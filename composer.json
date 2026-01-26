@@ -37,7 +37,7 @@
     "test": "phpunit",
     "lint": "phpcs",
     "fix": "phpcbf",
-    "analyze": "phpstan analyse"
+    "analyze": "phpstan analyse --memory-limit 2G"
   },
   "config": {
     "allow-plugins": {

@@ -9,70 +9,62 @@ use CompetitorKnowledge\AI\DTO\AnalysisResult;
 use RuntimeException;
 
 /**
- * Class GoogleGeminiProvider
+ * Class OpenRouterProvider
  *
- * Google Gemini implementation of the AIProviderInterface.
+ * OpenRouter implementation of the AIProviderInterface.
  *
  * @package CompetitorKnowledge\AI\Providers
  */
-class GoogleGeminiProvider implements AIProviderInterface {
+class OpenRouterProvider implements AIProviderInterface {
 
 	/**
-	 * Google AI Base URL.
-	 */
-	private const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/';
-
-	/**
-	 * API Key.
+	 * OpenRouter API Key.
 	 *
 	 * @var string
 	 */
 	private string $api_key;
 
 	/**
-	 * Model Name.
+	 * Model Name (e.g., anthropic/claude-3.5-sonnet).
 	 *
 	 * @var string
 	 */
 	private string $model;
 
 	/**
-	 * GoogleGeminiProvider constructor.
+	 * OpenRouterProvider constructor.
 	 *
 	 * @param string $api_key The API key.
-	 * @param string $model   The model name.
+	 * @param string $model   The model name to use.
 	 */
-	public function __construct( string $api_key, string $model = 'gemini-2.0-flash-exp' ) {
+	public function __construct( string $api_key, string $model = 'anthropic/claude-3.5-sonnet' ) {
 		$this->api_key = $api_key;
 		$this->model   = $model;
 	}
 
 	/**
-	 * Analyze context using Google Gemini.
+	 * Analyze context using OpenRouter.
 	 *
 	 * @param string $prompt  The instruction.
-	 * @param array  $context The context context.
+	 * @param array  $context The context data.
 	 *
 	 * @return AnalysisResult
 	 * @throws RuntimeException If the API request fails.
 	 */
 	public function analyze( string $prompt, array $context ): AnalysisResult {
-		$url = self::API_URL . $this->model . ':generateContent?key=' . $this->api_key;
+		$url = 'https://openrouter.ai/api/v1/chat/completions';
 
 		// Construct the prompt with context
 		$context_str = wp_json_encode( $context );
 		$full_prompt = "Context data: \n" . $context_str . "\n\nInstructions: \n" . $prompt . "\n\nReturn strictly valid minified JSON without markdown formatting.";
 
 		$body = array(
-			'contents'         => array(
+			'model'    => $this->model,
+			'messages' => array(
 				array(
-					'parts' => array(
-						array( 'text' => $full_prompt ),
-					),
+					'role'    => 'user',
+					'content' => $full_prompt,
 				),
-			),
-			'generationConfig' => array(
-				'responseMimeType' => 'application/json',
 			),
 		);
 
@@ -80,7 +72,9 @@ class GoogleGeminiProvider implements AIProviderInterface {
 			$url,
 			array(
 				'headers' => array(
-					'Content-Type' => 'application/json',
+					'Content-Type'  => 'application/json',
+					'Authorization' => 'Bearer ' . $this->api_key,
+					'HTTP-Referer'  => home_url(),
 				),
 				'body'    => wp_json_encode( $body ),
 				'timeout' => 60,
@@ -88,7 +82,7 @@ class GoogleGeminiProvider implements AIProviderInterface {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			throw new RuntimeException( 'Google AI Failed: ' . $response->get_error_message() );
+			throw new RuntimeException( 'OpenRouter AI Failed: ' . $response->get_error_message() );
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
@@ -96,21 +90,21 @@ class GoogleGeminiProvider implements AIProviderInterface {
 		$data        = json_decode( $body, true );
 
 		if ( 200 !== $status_code ) {
-			throw new RuntimeException( 'Google AI Error: ' . ( $data['error']['message'] ?? 'Unknown error' ) );
+			throw new RuntimeException( 'OpenRouter AI Error: ' . ( $data['error']['message'] ?? 'Unknown error' ) );
 		}
 
 		// Extract content from response
-		$content = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+		$content = $data['choices'][0]['message']['content'] ?? '';
 		$json    = json_decode( $content, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			// Fallback: try to clean markdown code blocks if present (though responseMimeType should prevent this)
+			// Fallback: try to clean markdown code blocks
 			$content = preg_replace( '/^```json|```$/m', '', $content );
-			$json    = json_decode( $content, true );
+			$json    = json_decode( trim( $content ), true );
 		}
 
 		if ( ! is_array( $json ) ) {
-			throw new RuntimeException( 'Failed to parse AI response as JSON.' );
+			throw new RuntimeException( 'Failed to parse OpenRouter response as JSON.' );
 		}
 
 		return new AnalysisResult( $json );

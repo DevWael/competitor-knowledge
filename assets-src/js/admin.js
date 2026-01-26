@@ -29,11 +29,30 @@ jQuery(document).ready(function ($) {
                     alert('Error: ' + response.data);
                     btn.prop('disabled', false).text(ck_vars.btn_text);
                 }
-            },
-            error: function () {
-                alert('Request failed.');
-                btn.prop('disabled', false).text(ck_vars.btn_text);
             }
         });
     });
+
+    // Conditional Settings Fields
+    function toggleProviderFields() {
+        const provider = $('#ck-ai-provider').val();
+
+        // Hide all provider-specific fields
+        $('.ck-field-google, .ck-field-ollama, .ck-field-openrouter').closest('tr').hide();
+
+        // Show fields for selected provider
+        if (provider === 'google') {
+            $('.ck-field-google').closest('tr').show();
+        } else if (provider === 'ollama') {
+            $('.ck-field-ollama').closest('tr').show();
+        } else if (provider === 'openrouter') {
+            $('.ck-field-openrouter').closest('tr').show();
+        }
+    }
+
+    // Initialize on settings page
+    if ($('#ck-ai-provider').length) {
+        toggleProviderFields();
+        $('#ck-ai-provider').on('change', toggleProviderFields);
+    }
 });

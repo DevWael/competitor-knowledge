@@ -45,11 +45,11 @@ class AnalysisRepository {
 		}
 
 		$post_id = wp_insert_post(
-			[
+			array(
 				'post_type'   => AnalysisCPT::POST_TYPE,
 				'post_title'  => sprintf( 'Analysis for Product #%d - %s', $product_id, current_time( 'mysql' ) ),
 				'post_status' => 'publish',
-			]
+			)
 		);
 
 		if ( is_wp_error( $post_id ) ) {

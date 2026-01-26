@@ -22,7 +22,7 @@ class AnalysisCPT {
 	 * Register the Custom Post Type.
 	 */
 	public function register(): void {
-		$labels = [
+		$labels = array(
 			'name'               => _x( 'Competitor Analyses', 'post type general name', 'competitor-knowledge' ),
 			'singular_name'      => _x( 'Analysis', 'post type singular name', 'competitor-knowledge' ),
 			'menu_name'          => _x( 'Competitor Analysis', 'admin menu', 'competitor-knowledge' ),
@@ -36,22 +36,22 @@ class AnalysisCPT {
 			'search_items'       => __( 'Search Analyses', 'competitor-knowledge' ),
 			'not_found'          => __( 'No analyses found.', 'competitor-knowledge' ),
 			'not_found_in_trash' => __( 'No analyses found in Trash.', 'competitor-knowledge' ),
-		];
+		);
 
-		$args = [
+		$args = array(
 			'labels'             => $labels,
 			'public'             => false,
 			'publicly_queryable' => false,
 			'show_ui'            => true,
 			'show_in_menu'       => true, // Parent menu or separate?
 			'query_var'          => true,
-			'rewrite'            => [ 'slug' => 'ck-analysis' ],
+			'rewrite'            => array( 'slug' => 'ck-analysis' ),
 			'capability_type'    => 'post',
 			'has_archive'        => false,
 			'hierarchical'       => false,
 			'menu_position'      => null,
-			'supports'           => [ 'title' ], // We store data in meta
-		];
+			'supports'           => array( 'title' ), // We store data in meta
+		);
 
 		register_post_type( self::POST_TYPE, $args );
 	}

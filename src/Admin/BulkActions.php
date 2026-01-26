@@ -20,9 +20,9 @@ class BulkActions {
 	 * Initialize bulk actions.
 	 */
 	public function init(): void {
-		add_filter( 'bulk_actions-edit-product', [ $this, 'register_bulk_action' ] );
-		add_filter( 'handle_bulk_actions-edit-product', [ $this, 'handle_bulk_action' ], 10, 3 );
-		add_action( 'admin_notices', [ $this, 'bulk_action_admin_notice' ] );
+		add_filter( 'bulk_actions-edit-product', array( $this, 'register_bulk_action' ) );
+		add_filter( 'handle_bulk_actions-edit-product', array( $this, 'handle_bulk_action' ), 10, 3 );
+		add_action( 'admin_notices', array( $this, 'bulk_action_admin_notice' ) );
 	}
 
 	/**
@@ -64,8 +64,8 @@ class BulkActions {
 
 				// Schedule the job
 				if ( function_exists( 'as_schedule_single_action' ) ) {
-					as_schedule_single_action( time(), AnalysisJob::ACTION, [ 'analysis_id' => $analysis_id ] );
-					$count++;
+					as_schedule_single_action( time(), AnalysisJob::ACTION, array( 'analysis_id' => $analysis_id ) );
+					++$count;
 				}
 			} catch ( \Exception $e ) {
 				// Log error and continue
