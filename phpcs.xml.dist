@@ -14,7 +14,6 @@
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 	<exclude-pattern>/tests/*</exclude-pattern>
 
-	<rule ref="WordPress-Core"/>
 	<rule ref="WordPress-Docs"/>
 	<rule ref="WordPress-Extra"/>
 
@@ -25,5 +24,12 @@
 		<properties>
 			<property name="text_domain" type="array" value="competitor-knowledge"/>
 		</properties>
-	</rule>
+	</rule>	
+
+
+
+	<rule ref="WordPress-Core">
+        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+        <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+    </rule>
 </ruleset>
