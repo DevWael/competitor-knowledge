@@ -46,6 +46,15 @@ class Ajax {
 			wp_send_json_error( 'Invalid product ID.' );
 		}
 
+		/**
+		 * Fires before an AJAX analysis request is processed.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param int $product_id The product ID to analyze.
+		 */
+		do_action( 'ck_before_ajax_analysis', $product_id );
+
 		try {
 			$repo        = new AnalysisRepository();
 			$analysis_id = $repo->create( $product_id );
@@ -56,6 +65,16 @@ class Ajax {
 			} else {
 				throw new \Exception( 'Action Scheduler not available.' );
 			}
+
+			/**
+			 * Fires after an AJAX analysis request is successfully processed.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param int $product_id  The product ID.
+			 * @param int $analysis_id The created analysis ID.
+			 */
+			do_action( 'ck_after_ajax_analysis', $product_id, $analysis_id );
 
 			wp_send_json_success( array( 'message' => __( 'Analysis started successfully.', 'competitor-knowledge' ) ) );
 		} catch ( \Exception $e ) {

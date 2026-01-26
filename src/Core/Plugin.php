@@ -41,8 +41,26 @@ class Plugin {
 	 * Run the plugin.
 	 */
 	public function run(): void {
+		/**
+		 * Fires before the plugin services are registered.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param Container $container The service container instance.
+		 */
+		do_action( 'ck_before_init', $this->container );
+
 		$this->register_services();
 		$this->register_hooks();
+
+		/**
+		 * Fires after the plugin is fully initialized.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param Container $container The service container instance.
+		 */
+		do_action( 'ck_after_init', $this->container );
 	}
 
 	/**
@@ -61,8 +79,19 @@ class Plugin {
 		$this->container->bind(
 			\CompetitorKnowledge\Search\Contracts\SearchProviderInterface::class,
 			function () {
-				$api_key = Settings::get_decrypted( 'tavily_api_key' );
-				return new \CompetitorKnowledge\Search\Providers\TavilyProvider( $api_key );
+				$api_key  = Settings::get_decrypted( 'tavily_api_key' );
+				$provider = new \CompetitorKnowledge\Search\Providers\TavilyProvider( $api_key );
+
+				/**
+				 * Filters the search provider instance.
+				 *
+				 * Allows third-party plugins to replace or decorate the search provider.
+				 *
+				 * @since 1.0.0
+				 *
+				 * @param \CompetitorKnowledge\Search\Contracts\SearchProviderInterface $provider The search provider.
+				 */
+				return apply_filters( 'ck_search_provider', $provider );
 			}
 		);
 
@@ -71,22 +100,43 @@ class Plugin {
 			\CompetitorKnowledge\AI\Contracts\AIProviderInterface::class,
 			function () {
 				$options        = get_option( Settings::OPTION_NAME );
-				$provider       = $options['ai_provider'] ?? 'google';
+				$provider_type  = $options['ai_provider'] ?? 'google';
 				$google_key     = Settings::get_decrypted( 'google_api_key' );
 				$openrouter_key = Settings::get_decrypted( 'openrouter_api_key' );
 				$ollama_url     = $options['ollama_url'] ?? 'http://localhost:11434';
 				$model_name     = $options['model_name'] ?? 'gemini-2.0-flash-exp';
 
-				if ( 'ollama' === $provider ) {
-					return new \CompetitorKnowledge\AI\Providers\OllamaProvider( $ollama_url, $model_name );
+				/**
+				 * Filters the AI model name used for analysis.
+				 *
+				 * @since 1.0.0
+				 *
+				 * @param string $model_name   The model name.
+				 * @param string $provider_type The provider type (google, ollama, openrouter).
+				 */
+				$model_name = apply_filters( 'ck_ai_model_name', $model_name, $provider_type );
+
+				if ( 'ollama' === $provider_type ) {
+					$provider = new \CompetitorKnowledge\AI\Providers\OllamaProvider( $ollama_url, $model_name );
+				} elseif ( 'openrouter' === $provider_type ) {
+					$provider = new \CompetitorKnowledge\AI\Providers\OpenRouterProvider( $openrouter_key, $model_name );
+				} else {
+					// Default to Google.
+					$provider = new \CompetitorKnowledge\AI\Providers\GoogleGeminiProvider( $google_key, $model_name );
 				}
 
-				if ( 'openrouter' === $provider ) {
-					return new \CompetitorKnowledge\AI\Providers\OpenRouterProvider( $openrouter_key, $model_name );
-				}
-
-				// Default to Google.
-				return new \CompetitorKnowledge\AI\Providers\GoogleGeminiProvider( $google_key, $model_name );
+				/**
+				 * Filters the AI provider instance.
+				 *
+				 * Allows third-party plugins to replace or decorate the AI provider.
+				 *
+				 * @since 1.0.0
+				 *
+				 * @param \CompetitorKnowledge\AI\Contracts\AIProviderInterface $provider      The AI provider.
+				 * @param string                                                $provider_type The provider type.
+				 * @param string                                                $model_name    The model name.
+				 */
+				return apply_filters( 'ck_ai_provider', $provider, $provider_type, $model_name );
 			}
 		);
 
@@ -102,6 +152,17 @@ class Plugin {
 				);
 			}
 		);
+
+		/**
+		 * Fires after core services are registered.
+		 *
+		 * Allows third-party plugins to register additional services.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param Container $container The service container instance.
+		 */
+		do_action( 'ck_services_registered', $this->container );
 	}
 
 	/**
@@ -125,6 +186,15 @@ class Plugin {
 
 		// Assets.
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+
+		/**
+		 * Fires after core hooks are registered.
+		 *
+		 * Allows third-party plugins to add their own hooks.
+		 *
+		 * @since 1.0.0
+		 */
+		do_action( 'ck_hooks_registered' );
 	}
 
 	/**
@@ -132,6 +202,15 @@ class Plugin {
 	 */
 	public function register_cpt(): void {
 		( new AnalysisCPT() )->register();
+
+		/**
+		 * Fires after the analysis CPT is registered.
+		 *
+		 * Allows third-party plugins to register related taxonomies or post types.
+		 *
+		 * @since 1.0.0
+		 */
+		do_action( 'ck_cpt_registered' );
 	}
 
 	/**
@@ -151,9 +230,15 @@ class Plugin {
 			true
 		);
 
-		wp_localize_script(
-			'ck-admin-js',
-			'ck_vars',
+		/**
+		 * Filters the localized script data for admin JS.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<string, mixed> $data The localized data array.
+		 */
+		$localized_data = apply_filters(
+			'ck_admin_script_data',
 			array(
 				'ajax_url'     => admin_url( 'admin-ajax.php' ),
 				'nonce'        => wp_create_nonce( 'ck_nonce' ),
@@ -161,5 +246,16 @@ class Plugin {
 				'btn_text'     => __( 'Run New Analysis', 'competitor-knowledge' ),
 			)
 		);
+
+		wp_localize_script( 'ck-admin-js', 'ck_vars', $localized_data );
+
+		/**
+		 * Fires after admin assets are enqueued.
+		 *
+		 * Allows third-party plugins to enqueue additional assets.
+		 *
+		 * @since 1.0.0
+		 */
+		do_action( 'ck_admin_assets_enqueued' );
 	}
 }

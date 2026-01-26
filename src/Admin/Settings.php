@@ -45,7 +45,16 @@ class Settings {
 		}
 
 		// Encrypt sensitive fields.
-		$sensitive_fields = array( 'google_api_key', 'tavily_api_key' );
+		$sensitive_fields = array( 'google_api_key', 'tavily_api_key', 'openrouter_api_key' );
+
+		/**
+		 * Filters the list of sensitive settings fields that should be encrypted.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<int, string> $sensitive_fields List of field names to encrypt.
+		 */
+		$sensitive_fields = apply_filters( 'ck_sensitive_settings_fields', $sensitive_fields );
 
 		foreach ( $sensitive_fields as $field ) {
 			if ( ! empty( $new_value[ $field ] ) ) {
@@ -311,11 +320,31 @@ class Settings {
 	public function render_field_ai_provider(): void {
 		$options = get_option( self::OPTION_NAME );
 		$value   = $options['ai_provider'] ?? 'google';
+
+		/**
+		 * Filters the available AI provider options.
+		 *
+		 * Allows third-party plugins to add custom AI providers.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<string, string> $providers Array of provider_key => provider_label.
+		 */
+		$providers = apply_filters(
+			'ck_ai_provider_options',
+			array(
+				'google'     => __( 'Google Gemini', 'competitor-knowledge' ),
+				'ollama'     => __( 'Ollama (Local)', 'competitor-knowledge' ),
+				'openrouter' => __( 'OpenRouter', 'competitor-knowledge' ),
+			)
+		);
 		?>
 		<select name="<?php echo esc_attr( self::OPTION_NAME ); ?>[ai_provider]" id="ck-ai-provider">
-			<option value="google" <?php selected( $value, 'google' ); ?>>Google Gemini</option>
-			<option value="ollama" <?php selected( $value, 'ollama' ); ?>>Ollama (Local)</option>
-			<option value="openrouter" <?php selected( $value, 'openrouter' ); ?>>OpenRouter</option>
+			<?php foreach ( $providers as $provider_key => $provider_label ) : ?>
+				<option value="<?php echo esc_attr( $provider_key ); ?>" <?php selected( $value, $provider_key ); ?>>
+					<?php echo esc_html( $provider_label ); ?>
+				</option>
+			<?php endforeach; ?>
 		</select>
 		<p class="description"><?php esc_html_e( 'Select the AI provider to use for analysis.', 'competitor-knowledge' ); ?></p>
 		<?php

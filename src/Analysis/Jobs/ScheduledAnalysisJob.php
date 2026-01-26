@@ -84,13 +84,29 @@ class ScheduledAnalysisJob {
 	 * Handle the scheduled job.
 	 */
 	public static function handle(): void {
+		/**
+		 * Fires before the scheduled analysis job runs.
+		 *
+		 * @since 1.0.0
+		 */
+		do_action( 'ck_before_scheduled_analysis' );
+
 		$options    = get_option( Settings::OPTION_NAME );
 		$categories = $options['scheduled_analysis_categories'] ?? array();
+
+		/**
+		 * Filters the default batch limit for scheduled analysis.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param int $limit The maximum number of products to analyze per run.
+		 */
+		$batch_limit = apply_filters( 'ck_scheduled_analysis_batch_limit', 50 );
 
 		// Get products to analyze.
 		$args = array(
 			'post_type'      => 'product',
-			'posts_per_page' => 50, // Limit per run.
+			'posts_per_page' => $batch_limit,
 			'post_status'    => 'publish',
 			'fields'         => 'ids',
 		);
@@ -105,7 +121,26 @@ class ScheduledAnalysisJob {
 			);
 		}
 
+		/**
+		 * Filters the query args for fetching products to analyze.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<string, mixed> $args       The WP_Query args.
+		 * @param array<int, int>      $categories The category IDs to filter by.
+		 */
+		$args = apply_filters( 'ck_scheduled_analysis_query_args', $args, $categories );
+
 		$product_ids = get_posts( $args );
+
+		/**
+		 * Filters the product IDs to be analyzed in the scheduled job.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<int, int|\WP_Post> $product_ids The product IDs to analyze.
+		 */
+		$product_ids = apply_filters( 'ck_scheduled_analysis_products', $product_ids );
 
 		if ( empty( $product_ids ) ) {
 			return;
@@ -113,17 +148,48 @@ class ScheduledAnalysisJob {
 
 		$repo = new AnalysisRepository();
 
+		/**
+		 * Filters the delay between individual analysis jobs in seconds.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param int $delay Delay in seconds between job schedules.
+		 */
+		$job_delay = apply_filters( 'ck_scheduled_analysis_job_delay', 60 );
+
 		foreach ( $product_ids as $product_id ) {
+			// Handle both int (when fields = 'ids') and WP_Post object.
+			$product_id_int = is_object( $product_id ) ? $product_id->ID : (int) $product_id;
+
 			try {
-				$analysis_id = $repo->create( (int) $product_id );
+				$analysis_id = $repo->create( $product_id_int );
 
 				// Schedule individual analysis job.
 				if ( function_exists( 'as_schedule_single_action' ) ) {
-					as_schedule_single_action( time() + 60, AnalysisJob::ACTION, array( 'analysis_id' => $analysis_id ) );
+					as_schedule_single_action( time() + $job_delay, AnalysisJob::ACTION, array( 'analysis_id' => $analysis_id ) );
 				}
+
+				/**
+				 * Fires after a product is scheduled for analysis.
+				 *
+				 * @since 1.0.0
+				 *
+				 * @param int $product_id  The product ID.
+				 * @param int $analysis_id The created analysis ID.
+				 */
+				do_action( 'ck_product_scheduled_for_analysis', $product_id_int, $analysis_id );
 			} catch ( \Exception $e ) {
 				error_log( 'Scheduled Analysis Error: ' . $e->getMessage() ); // phpcs:ignore
 			}
 		}
+
+		/**
+		 * Fires after the scheduled analysis job completes.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<int, int|\WP_Post> $product_ids The product IDs that were scheduled.
+		 */
+		do_action( 'ck_after_scheduled_analysis', $product_ids );
 	}
 }
