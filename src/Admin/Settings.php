@@ -24,6 +24,49 @@ class Settings {
 	public function init(): void {
 		add_action( 'admin_menu', [ $this, 'add_menu_page' ] );
 		add_action( 'admin_init', [ $this, 'register_settings' ] );
+		add_filter( 'pre_update_option_' . self::OPTION_NAME, [ $this, 'encrypt_api_keys' ] );
+	}
+
+	/**
+	 * Encrypt API keys before saving.
+	 *
+	 * @param array $new_value The new option value.
+	 *
+	 * @return array
+	 */
+	public function encrypt_api_keys( $new_value ): array {
+		if ( ! is_array( $new_value ) ) {
+			return $new_value;
+		}
+
+		// Encrypt sensitive fields
+		$sensitive_fields = [ 'google_api_key', 'tavily_api_key' ];
+
+		foreach ( $sensitive_fields as $field ) {
+			if ( ! empty( $new_value[ $field ] ) ) {
+				// Only encrypt if not already encrypted
+				if ( ! \CompetitorKnowledge\Core\Encryption::is_encrypted( $new_value[ $field ] ) ) {
+					$new_value[ $field ] = \CompetitorKnowledge\Core\Encryption::encrypt( $new_value[ $field ] );
+				}
+			}
+		}
+
+		return $new_value;
+	}
+
+	/**
+	 * Get a decrypted option value.
+	 *
+	 * @param string $key     The option key.
+	 * @param string $default Default value.
+	 *
+	 * @return string
+	 */
+	public static function get_decrypted( string $key, string $default = '' ): string {
+		$options = get_option( self::OPTION_NAME );
+		$value   = $options[ $key ] ?? $default;
+
+		return \CompetitorKnowledge\Core\Encryption::decrypt( $value );
 	}
 
 	/**
@@ -121,6 +164,53 @@ class Settings {
 				'default' => '10',
 			]
 		);
+
+		// Scheduled Analysis Settings
+		add_settings_section(
+			'ck_scheduled_section',
+			__( 'Scheduled Analysis', 'competitor-knowledge' ),
+			'__return_empty_string',
+			'competitor-knowledge'
+		);
+
+		add_settings_field(
+			'scheduled_analysis_enabled',
+			__( 'Enable Scheduled Analysis', 'competitor-knowledge' ),
+			[ $this, 'render_field_checkbox' ],
+			'competitor-knowledge',
+			'ck_scheduled_section',
+			[ 'id' => 'scheduled_analysis_enabled' ]
+		);
+
+		add_settings_field(
+			'scheduled_analysis_frequency',
+			__( 'Frequency', 'competitor-knowledge' ),
+			[ $this, 'render_field_select' ],
+			'competitor-knowledge',
+			'ck_scheduled_section',
+			[
+				'id'      => 'scheduled_analysis_frequency',
+				'options' => [
+					'daily'   => __( 'Daily', 'competitor-knowledge' ),
+					'weekly'  => __( 'Weekly', 'competitor-knowledge' ),
+					'monthly' => __( 'Monthly', 'competitor-knowledge' ),
+				],
+			]
+		);
+	}
+
+	/**
+	 * Render a checkbox field.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public function render_field_checkbox( array $args ): void {
+		$options = get_option( self::OPTION_NAME );
+		$id      = $args['id'];
+		$value   = $options[ $id ] ?? false;
+		?>
+		<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[<?php echo esc_attr( $id ); ?>]" value="1" <?php checked( $value, 1 ); ?>>
+		<?php
 	}
 
 	/**

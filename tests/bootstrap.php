@@ -37,3 +37,21 @@ if ( ! function_exists( 'esc_html__' ) ) {
 		return $text;
 	}
 }
+
+if ( ! function_exists( 'current_time' ) ) {
+	function current_time( $type, $gmt = 0 ) {
+		return date( 'Y-m-d H:i:s' );
+	}
+}
+
+if ( ! function_exists( 'has_action' ) ) {
+	function has_action( $hook_name, $callback = false ) {
+		return false;
+	}
+}
+
+if ( ! function_exists( '_n' ) ) {
+	function _n( $single, $plural, $number, $domain = 'default' ) {
+		return $number === 1 ? $single : $plural;
+	}
+}

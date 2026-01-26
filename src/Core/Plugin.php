@@ -51,25 +51,23 @@ class Plugin {
 
 		// Bind Search Provider
 		$this->container->bind( \CompetitorKnowledge\Search\Contracts\SearchProviderInterface::class, function () {
-			$options = get_option( Settings::OPTION_NAME );
-			$api_key = $options['tavily_api_key'] ?? '';
+			$api_key = Settings::get_decrypted( 'tavily_api_key' );
 			return new \CompetitorKnowledge\Search\Providers\TavilyProvider( $api_key );
 		} );
 
 		// Bind AI Provider
 		$this->container->bind( \CompetitorKnowledge\AI\Contracts\AIProviderInterface::class, function () {
-			$options  = get_option( Settings::OPTION_NAME );
-			$provider = $options['ai_provider'] ?? 'google';
-			$api_key  = $options['google_api_key'] ?? '';
-			// $ollama_url = $options['ollama_url'] ?? '';
+			$options     = get_option( Settings::OPTION_NAME );
+			$provider    = $options['ai_provider'] ?? 'google';
+			$google_key  = Settings::get_decrypted( 'google_api_key' );
+			$ollama_url  = $options['ollama_url'] ?? 'http://localhost:11434';
 
 			if ( 'ollama' === $provider ) {
-				// TODO: Implement OllamaProvider
-				throw new \RuntimeException( 'Ollama provider not yet implemented.' );
+				return new \CompetitorKnowledge\AI\Providers\OllamaProvider( $ollama_url );
 			}
 
 			// Default to Google
-			return new \CompetitorKnowledge\AI\Providers\GoogleGeminiProvider( $api_key );
+			return new \CompetitorKnowledge\AI\Providers\GoogleGeminiProvider( $google_key );
 		} );
 
 		// Bind Analyzer
@@ -95,10 +93,12 @@ class Plugin {
 			( new Settings() )->init();
 			( new Metaboxes() )->init();
 			( new Ajax() )->init();
+			( new \CompetitorKnowledge\Admin\BulkActions() )->init();
 		}
 
 		// Register Job Handler
 		\CompetitorKnowledge\Analysis\Jobs\AnalysisJob::init();
+		\CompetitorKnowledge\Analysis\Jobs\ScheduledAnalysisJob::init();
 
 		// Assets
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
