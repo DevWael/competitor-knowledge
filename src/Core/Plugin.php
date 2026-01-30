@@ -103,6 +103,7 @@ class Plugin {
 				$provider_type  = $options['ai_provider'] ?? 'google';
 				$google_key     = Settings::get_decrypted( 'google_api_key' );
 				$openrouter_key = Settings::get_decrypted( 'openrouter_api_key' );
+				$zai_key        = Settings::get_decrypted( 'zai_api_key' );
 				$ollama_url     = $options['ollama_url'] ?? 'http://localhost:11434';
 				$model_name     = $options['model_name'] ?? 'gemini-2.0-flash-exp';
 
@@ -112,7 +113,7 @@ class Plugin {
 				 * @since 1.0.0
 				 *
 				 * @param string $model_name   The model name.
-				 * @param string $provider_type The provider type (google, ollama, openrouter).
+				 * @param string $provider_type The provider type (google, ollama, openrouter, zai).
 				 */
 				$model_name = apply_filters( 'ck_ai_model_name', $model_name, $provider_type );
 
@@ -120,6 +121,8 @@ class Plugin {
 					$provider = new \CompetitorKnowledge\AI\Providers\OllamaProvider( $ollama_url, $model_name );
 				} elseif ( 'openrouter' === $provider_type ) {
 					$provider = new \CompetitorKnowledge\AI\Providers\OpenRouterProvider( $openrouter_key, $model_name );
+				} elseif ( 'zai' === $provider_type ) {
+					$provider = new \CompetitorKnowledge\AI\Providers\ZAIProvider( $zai_key, $model_name );
 				} else {
 					// Default to Google.
 					$provider = new \CompetitorKnowledge\AI\Providers\GoogleGeminiProvider( $google_key, $model_name );

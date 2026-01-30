@@ -45,7 +45,7 @@ class Settings {
 		}
 
 		// Encrypt sensitive fields.
-		$sensitive_fields = array( 'google_api_key', 'tavily_api_key', 'openrouter_api_key' );
+		$sensitive_fields = array( 'google_api_key', 'tavily_api_key', 'openrouter_api_key', 'zai_api_key' );
 
 		/**
 		 * Filters the list of sensitive settings fields that should be encrypted.
@@ -155,6 +155,18 @@ class Settings {
 		);
 
 		add_settings_field(
+			'zai_api_key',
+			__( 'Z.AI Only: API Key', 'competitor-knowledge' ),
+			array( $this, 'render_field_text' ),
+			'competitor-knowledge',
+			'ck_general_section',
+			array(
+				'id'    => 'zai_api_key',
+				'class' => 'ck-field-zai',
+			)
+		);
+
+		add_settings_field(
 			'model_name',
 			__( 'Model Name', 'competitor-knowledge' ),
 			array( $this, 'render_field_text' ),
@@ -163,7 +175,7 @@ class Settings {
 			array(
 				'id'          => 'model_name',
 				'default'     => 'gemini-2.0-flash-exp',
-				'description' => __( 'Google: gemini-2.0-flash-exp | Ollama: llama3 | OpenRouter: anthropic/claude-3.5-sonnet', 'competitor-knowledge' ),
+				'description' => __( 'Google: gemini-2.0-flash-exp | Ollama: llama3 | OpenRouter: anthropic/claude-3.5-sonnet | Z.AI: glm-4.7', 'competitor-knowledge' ),
 			)
 		);
 
@@ -336,6 +348,7 @@ class Settings {
 				'google'     => __( 'Google Gemini', 'competitor-knowledge' ),
 				'ollama'     => __( 'Ollama (Local)', 'competitor-knowledge' ),
 				'openrouter' => __( 'OpenRouter', 'competitor-knowledge' ),
+				'zai'        => __( 'Z.AI', 'competitor-knowledge' ),
 			)
 		);
 		?>
