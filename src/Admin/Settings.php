@@ -45,7 +45,7 @@ class Settings {
 		}
 
 		// Encrypt sensitive fields.
-		$sensitive_fields = array( 'google_api_key', 'tavily_api_key', 'openrouter_api_key', 'zai_api_key' );
+		$sensitive_fields = array( 'google_api_key', 'tavily_api_key', 'brave_api_key', 'openrouter_api_key', 'zai_api_key' );
 
 		/**
 		 * Filters the list of sensitive settings fields that should be encrypted.
@@ -180,12 +180,126 @@ class Settings {
 		);
 
 		add_settings_field(
+			'search_provider',
+			__( 'Search Provider', 'competitor-knowledge' ),
+			array( $this, 'render_field_select' ),
+			'competitor-knowledge',
+			'ck_general_section',
+			array(
+				'id'      => 'search_provider',
+				'default' => 'tavily',
+				'options' => array(
+					'tavily' => __( 'Tavily Search', 'competitor-knowledge' ),
+					'brave'  => __( 'Brave Search', 'competitor-knowledge' ),
+				),
+			)
+		);
+
+		add_settings_field(
 			'tavily_api_key',
-			__( 'Tavily Search API Key', 'competitor-knowledge' ),
+			__( 'Tavily Only: API Key', 'competitor-knowledge' ),
 			array( $this, 'render_field_text' ),
 			'competitor-knowledge',
 			'ck_general_section',
-			array( 'id' => 'tavily_api_key' )
+			array(
+				'id'    => 'tavily_api_key',
+				'class' => 'ck-field-tavily',
+			)
+		);
+
+		add_settings_field(
+			'brave_api_key',
+			__( 'Brave Only: API Key', 'competitor-knowledge' ),
+			array( $this, 'render_field_text' ),
+			'competitor-knowledge',
+			'ck_general_section',
+			array(
+				'id'    => 'brave_api_key',
+				'class' => 'ck-field-brave',
+			)
+		);
+
+		// Intelligence Modules Settings.
+		add_settings_section(
+			'ck_intelligence_section',
+			__( 'Intelligence Modules', 'competitor-knowledge' ),
+			array( $this, 'render_intelligence_section_description' ),
+			'competitor-knowledge'
+		);
+
+		add_settings_field(
+			'intelligence_module_pricing',
+			__( 'Pricing Intelligence', 'competitor-knowledge' ),
+			array( $this, 'render_field_checkbox' ),
+			'competitor-knowledge',
+			'ck_intelligence_section',
+			array(
+				'id'          => 'intelligence_module_pricing',
+				'description' => __( 'Analyze competitor pricing strategies, distributions, and positioning.', 'competitor-knowledge' ),
+			)
+		);
+
+		add_settings_field(
+			'intelligence_module_catalog',
+			__( 'Product Catalog Intelligence', 'competitor-knowledge' ),
+			array( $this, 'render_field_checkbox' ),
+			'competitor-knowledge',
+			'ck_intelligence_section',
+			array(
+				'id'          => 'intelligence_module_catalog',
+				'description' => __( 'Analyze competitor product offerings, variants, and features.', 'competitor-knowledge' ),
+			)
+		);
+
+		add_settings_field(
+			'intelligence_module_marketing',
+			__( 'Marketing & Positioning Intelligence', 'competitor-knowledge' ),
+			array( $this, 'render_field_checkbox' ),
+			'competitor-knowledge',
+			'ck_intelligence_section',
+			array(
+				'id'          => 'intelligence_module_marketing',
+				'description' => __( 'Analyze competitor marketing strategies and brand positioning.', 'competitor-knowledge' ),
+			)
+		);
+
+		// Auto Re-analysis Settings.
+		add_settings_section(
+			'ck_auto_reanalysis_section',
+			__( 'Auto Re-analysis', 'competitor-knowledge' ),
+			array( $this, 'render_auto_reanalysis_section_description' ),
+			'competitor-knowledge'
+		);
+
+		add_settings_field(
+			'auto_reanalysis_triggers',
+			__( 'Trigger Events', 'competitor-knowledge' ),
+			array( $this, 'render_field_checkboxes' ),
+			'competitor-knowledge',
+			'ck_auto_reanalysis_section',
+			array(
+				'id'      => 'auto_reanalysis_triggers',
+				'options' => array(
+					'price_change'   => __( 'When product price changes', 'competitor-knowledge' ),
+					'stock_change'   => __( 'When product stock status changes', 'competitor-knowledge' ),
+					'product_update' => __( 'When product is updated', 'competitor-knowledge' ),
+				),
+			)
+		);
+
+		add_settings_field(
+			'auto_reanalysis_cooldown',
+			__( 'Cooldown Period (hours)', 'competitor-knowledge' ),
+			array( $this, 'render_field_number' ),
+			'competitor-knowledge',
+			'ck_auto_reanalysis_section',
+			array(
+				'id'          => 'auto_reanalysis_cooldown',
+				'default'     => 24,
+				'min'         => 1,
+				'max'         => 168,
+				'description' => __( 'Minimum hours between automatic re-analyses for the same product.', 'competitor-knowledge' ),
+			)
 		);
 
 		// Notification Settings.
@@ -255,16 +369,29 @@ class Settings {
 	}
 
 	/**
+	 * Render intelligence section description.
+	 */
+	public function render_intelligence_section_description(): void {
+		?>
+		<p><?php esc_html_e( 'Enable additional intelligence modules to gather deeper competitive insights. These modules extend the AI analysis with specialized data collection.', 'competitor-knowledge' ); ?></p>
+		<?php
+	}
+
+	/**
 	 * Render a checkbox field.
 	 *
 	 * @param array<string, mixed> $args Field arguments.
 	 */
 	public function render_field_checkbox( array $args ): void {
-		$options = get_option( self::OPTION_NAME );
-		$id      = $args['id'];
-		$value   = $options[ $id ] ?? false;
+		$options     = get_option( self::OPTION_NAME );
+		$id          = $args['id'];
+		$value       = $options[ $id ] ?? false;
+		$description = $args['description'] ?? '';
 		?>
 		<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[<?php echo esc_attr( $id ); ?>]" value="1" <?php checked( $value, 1 ); ?>>
+		<?php if ( $description ) : ?>
+			<p class="description"><?php echo esc_html( $description ); ?></p>
+		<?php endif; ?>
 		<?php
 	}
 
@@ -382,4 +509,41 @@ class Settings {
 		<?php endif; ?>
 		<?php
 	}
+
+	/**
+	 * Render the auto re-analysis section description.
+	 */
+	public function render_auto_reanalysis_section_description(): void {
+		?>
+		<p><?php esc_html_e( 'Configure automatic re-analysis triggers. When enabled, analyses will be scheduled automatically based on product events.', 'competitor-knowledge' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render multiple checkboxes field.
+	 *
+	 * @param array<string, mixed> $args Field arguments.
+	 */
+	public function render_field_checkboxes( array $args ): void {
+		$options         = get_option( self::OPTION_NAME );
+		$id              = $args['id'];
+		$saved_values    = $options[ $id ] ?? array();
+		$checkbox_options = $args['options'] ?? array();
+
+		foreach ( $checkbox_options as $value => $label ) :
+			$checked = is_array( $saved_values ) && in_array( $value, $saved_values, true );
+			?>
+			<label style="display: block; margin-bottom: 8px;">
+				<input 
+					type="checkbox" 
+					name="<?php echo esc_attr( self::OPTION_NAME ); ?>[<?php echo esc_attr( $id ); ?>][]" 
+					value="<?php echo esc_attr( $value ); ?>" 
+					<?php checked( $checked ); ?>
+				>
+				<?php echo esc_html( $label ); ?>
+			</label>
+			<?php
+		endforeach;
+	}
 }
+

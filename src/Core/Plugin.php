@@ -79,8 +79,17 @@ class Plugin {
 		$this->container->bind(
 			\CompetitorKnowledge\Search\Contracts\SearchProviderInterface::class,
 			function () {
-				$api_key  = Settings::get_decrypted( 'tavily_api_key' );
-				$provider = new \CompetitorKnowledge\Search\Providers\TavilyProvider( $api_key );
+				$options          = get_option( Settings::OPTION_NAME );
+				$search_provider  = $options['search_provider'] ?? 'tavily';
+				$tavily_api_key   = Settings::get_decrypted( 'tavily_api_key' );
+				$brave_api_key    = Settings::get_decrypted( 'brave_api_key' );
+
+				if ( 'brave' === $search_provider ) {
+					$provider = new \CompetitorKnowledge\Search\Providers\BraveProvider( $brave_api_key );
+				} else {
+					// Default to Tavily.
+					$provider = new \CompetitorKnowledge\Search\Providers\TavilyProvider( $tavily_api_key );
+				}
 
 				/**
 				 * Filters the search provider instance.
@@ -143,6 +152,38 @@ class Plugin {
 			}
 		);
 
+		// Bind PromptBuilder.
+		$this->container->bind(
+			\CompetitorKnowledge\Analysis\PromptBuilder::class,
+			function () {
+				$options         = get_option( Settings::OPTION_NAME );
+				$model_name      = $options['model_name'] ?? 'gemini-2.0-flash-exp';
+				
+				// Map individual module checkboxes to enabled modules array.
+				$enabled_modules = array();
+				if ( ! empty( $options['intelligence_module_pricing'] ) ) {
+					$enabled_modules[] = 'pricing';
+				}
+				if ( ! empty( $options['intelligence_module_catalog'] ) ) {
+					$enabled_modules[] = 'catalog';
+				}
+				if ( ! empty( $options['intelligence_module_marketing'] ) ) {
+					$enabled_modules[] = 'marketing';
+				}
+
+				/**
+				 * Filters the enabled intelligence modules.
+				 *
+				 * @since 1.0.0
+				 *
+				 * @param array<string> $enabled_modules The enabled modules array.
+				 */
+				$enabled_modules = apply_filters( 'ck_intelligence_modules', $enabled_modules );
+
+				return new \CompetitorKnowledge\Analysis\PromptBuilder( $model_name, $enabled_modules );
+			}
+		);
+
 		// Bind Analyzer.
 		$this->container->bind(
 			\CompetitorKnowledge\Analysis\Analyzer::class,
@@ -151,7 +192,8 @@ class Plugin {
 					$c->get( \CompetitorKnowledge\Search\Contracts\SearchProviderInterface::class ),
 					$c->get( \CompetitorKnowledge\AI\Contracts\AIProviderInterface::class ),
 					new \CompetitorKnowledge\Data\AnalysisRepository(),
-					new \CompetitorKnowledge\Data\PriceHistoryRepository()
+					new \CompetitorKnowledge\Data\PriceHistoryRepository(),
+					$c->get( \CompetitorKnowledge\Analysis\PromptBuilder::class )
 				);
 			}
 		);
@@ -181,11 +223,20 @@ class Plugin {
 			( new Metaboxes() )->init();
 			( new Ajax() )->init();
 			( new \CompetitorKnowledge\Admin\BulkActions() )->init();
+			( new \CompetitorKnowledge\Admin\ComparisonMatrix() )->init();
 		}
 
 		// Register Job Handler.
 		\CompetitorKnowledge\Analysis\Jobs\AnalysisJob::init();
 		\CompetitorKnowledge\Analysis\Jobs\ScheduledAnalysisJob::init();
+
+		// Register Step Jobs for progress tracking.
+		\CompetitorKnowledge\Analysis\Jobs\SearchStepJob::init();
+		\CompetitorKnowledge\Analysis\Jobs\AIAnalysisStepJob::init();
+		\CompetitorKnowledge\Analysis\Jobs\SaveResultsStepJob::init();
+
+		// Register Auto Re-analysis hooks.
+		( new \CompetitorKnowledge\Analysis\AutoReanalysis() )->init();
 
 		// Assets.
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );

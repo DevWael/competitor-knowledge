@@ -80,6 +80,33 @@ class AnalysisResult {
 	}
 
 	/**
+	 * Get pricing intelligence data.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function get_pricing_intelligence(): array {
+		return $this->insights['pricing_intelligence'] ?? array();
+	}
+
+	/**
+	 * Get catalog intelligence data.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function get_catalog_intelligence(): array {
+		return $this->insights['catalog_intelligence'] ?? array();
+	}
+
+	/**
+	 * Get marketing intelligence data.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function get_marketing_intelligence(): array {
+		return $this->insights['marketing_intelligence'] ?? array();
+	}
+
+	/**
 	 * Convert the result to an array.
 	 *
 	 * @return array<string, mixed>

@@ -86,7 +86,22 @@ class Metaboxes {
 				<button type="button" class="button button-primary" id="ck-run-analysis" data-product-id="<?php echo esc_attr( (string) $post->ID ); ?>">
 					<?php esc_html_e( 'Run New Analysis', 'competitor-knowledge' ); ?>
 				</button>
+				<button type="button" class="button" id="ck-view-all-analyses" data-product-id="<?php echo esc_attr( (string) $post->ID ); ?>" style="margin-left: 10px;">
+					<?php esc_html_e( 'View All Analyses', 'competitor-knowledge' ); ?>
+				</button>
 			</p>
+
+			<!-- Progress Bar (hidden by default) -->
+			<div id="ck-progress-container" style="display: none; margin: 15px 0; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
+				<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+					<span id="ck-progress-label" style="font-weight: 600; color: #333;"><?php esc_html_e( 'Starting analysis...', 'competitor-knowledge' ); ?></span>
+					<span id="ck-progress-percent" style="color: #666;">0%</span>
+				</div>
+				<div style="background: #e0e0e0; border-radius: 4px; height: 20px; overflow: hidden;">
+					<div id="ck-progress-bar" style="background: linear-gradient(90deg, #2196f3, #21cbf3); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+				</div>
+				<div id="ck-progress-status" style="margin-top: 8px; color: #666; font-size: 12px;"></div>
+			</div>
 			
 			<?php if ( ! empty( $analyses ) ) : ?>
 				<table class="widefat striped">

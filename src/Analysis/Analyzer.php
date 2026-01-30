@@ -54,23 +54,33 @@ class Analyzer {
 	private PriceHistoryRepository $price_history;
 
 	/**
+	 * Prompt Builder.
+	 *
+	 * @var PromptBuilder
+	 */
+	private PromptBuilder $prompt_builder;
+
+	/**
 	 * Analyzer constructor.
 	 *
 	 * @param SearchProviderInterface $search_provider Search service.
 	 * @param AIProviderInterface     $ai_provider     AI service.
 	 * @param AnalysisRepository      $repository      Data repository.
 	 * @param PriceHistoryRepository  $price_history   Price History repository.
+	 * @param PromptBuilder           $prompt_builder  Prompt builder service.
 	 */
 	public function __construct(
 		SearchProviderInterface $search_provider,
 		AIProviderInterface $ai_provider,
 		AnalysisRepository $repository,
-		PriceHistoryRepository $price_history
+		PriceHistoryRepository $price_history,
+		PromptBuilder $prompt_builder
 	) {
 		$this->search_provider = $search_provider;
 		$this->ai_provider     = $ai_provider;
 		$this->repository      = $repository;
 		$this->price_history   = $price_history;
+		$this->prompt_builder  = $prompt_builder;
 	}
 
 	/**
@@ -398,43 +408,7 @@ class Analyzer {
 	 * @return string The analysis prompt.
 	 */
 	protected function build_analysis_prompt(): string {
-		$prompt = <<<'PROMPT'
-Analyze the search results to find competitors selling the same product.
-Compare prices, specifications, and availability.
-
-Also perform:
-1. Content Gap Analysis: Compare the tone and identify keywords present in competitor descriptions but missing in mine.
-2. Sentiment Analysis: Identify common competitor weaknesses or complaints based on reviews/snippets.
-3. Strategic Advice: Provide pricing and positioning advice based on the comparison.
-
-Return a strictly valid JSON (no markdown) with this structure:
-{
-  "competitors": [
-    {
-      "name": "Competitor Name",
-      "url": "https://example.com",
-      "price": "99.99",
-      "currency": "USD",
-      "stock_status": "in_stock|out_of_stock|unknown",
-      "comparison_notes": "Brief comparison notes"
-    }
-  ],
-  "content_analysis": {
-    "my_tone": "Tone description",
-    "competitor_tone": "Tone description",
-    "missing_keywords": ["keyword1", "keyword2"],
-    "improvement_suggestion": "Suggested improvement text"
-  },
-  "sentiment_analysis": {
-    "competitor_weaknesses": ["weakness1", "weakness2"],
-    "market_gaps": ["gap1", "gap2"]
-  },
-  "strategy": {
-    "pricing_advice": "Pricing recommendation",
-    "action_items": ["action1", "action2"]
-  }
-}
-PROMPT;
+		$prompt = $this->prompt_builder->build();
 
 		/**
 		 * Filters the base analysis prompt before it's sent to the AI.

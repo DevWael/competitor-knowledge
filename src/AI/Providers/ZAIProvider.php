@@ -64,17 +64,21 @@ class ZAIProvider implements AIProviderInterface {
 		$full_prompt = "Context data: \n" . $context_str . "\n\nInstructions: \n" . $prompt . "\n\nReturn strictly valid minified JSON without markdown formatting.";
 
 		$body = array(
-			'model'           => $this->model,
-			'messages'        => array(
+			'model'    => $this->model,
+			'messages' => array(
 				array(
 					'role'    => 'user',
 					'content' => $full_prompt,
 				),
 			),
-			'response_format' => array(
-				'type' => 'json_object',
-			),
 		);
+
+		// Only add response_format if model supports it (some models/billing tiers may not).
+		// This can be controlled via filter if needed.
+		$use_json_mode = apply_filters( 'ck_zai_use_json_mode', false, $this->model );
+		if ( $use_json_mode ) {
+			$body['response_format'] = array( 'type' => 'json_object' );
+		}
 
 		$json_body = wp_json_encode( $body );
 		if ( false === $json_body ) {
@@ -103,8 +107,16 @@ class ZAIProvider implements AIProviderInterface {
 		$data        = json_decode( $body, true );
 
 		if ( 200 !== $status_code ) {
+			// Provide detailed error for debugging billing/auth issues.
+			$error_msg = $data['error']['message'] ?? $data['message'] ?? 'Unknown error';
+			$error_details = sprintf(
+				'Z.AI Error (Status %d): %s. Response: %s',
+				$status_code,
+				$error_msg,
+				substr( $body, 0, 500 ) // First 500 chars for debugging.
+			);
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are not output to browser.
-			throw new RuntimeException( 'Z.AI Error: ' . ( $data['error']['message'] ?? 'Unknown error' ) );
+			throw new RuntimeException( $error_details );
 		}
 
 		// Extract content from response.
