@@ -108,9 +108,10 @@ class Ajax {
 	/**
 	 * Run analysis via AJAX.
 	 *
-	 * @throws \Exception If Action Scheduler is not available.
+	 * Executes analysis synchronously for better UX when user is actively waiting.
 	 */
 	public function run_analysis(): void {
+		error_log( '[CK Ajax] run_analysis called' );
 		check_ajax_referer( 'ck_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'edit_products' ) ) {
@@ -118,6 +119,7 @@ class Ajax {
 		}
 
 		$product_id = isset( $_POST['product_id'] ) ? (int) $_POST['product_id'] : 0;
+		error_log( sprintf( '[CK Ajax] Product ID: %d', $product_id ) );
 
 		if ( ! $product_id ) {
 			wp_send_json_error( 'Invalid product ID.' );
@@ -133,22 +135,25 @@ class Ajax {
 		do_action( 'ck_before_ajax_analysis', $product_id );
 
 		try {
+			error_log( '[CK Ajax] Creating analysis record...' );
 			$repo        = new AnalysisRepository();
 			$analysis_id = $repo->create( $product_id );
+			error_log( sprintf( '[CK Ajax] Analysis created with ID: %d', $analysis_id ) );
 
-			// Schedule the first step job instead of monolithic job.
+			// Schedule via Action Scheduler for reliability (AI APIs are too slow for sync).
 			if ( function_exists( 'as_schedule_single_action' ) ) {
 				as_schedule_single_action(
 					time(),
 					\CompetitorKnowledge\Analysis\Jobs\SearchStepJob::ACTION,
 					array( 'analysis_id' => $analysis_id )
 				);
+				error_log( sprintf( '[CK Ajax] Scheduled SearchStepJob for analysis #%d', $analysis_id ) );
 			} else {
 				throw new \Exception( 'Action Scheduler not available.' );
 			}
 
 			/**
-			 * Fires after an AJAX analysis request is successfully processed.
+			 * Fires after an AJAX analysis request is processed.
 			 *
 			 * @since 1.0.0
 			 *
@@ -168,10 +173,12 @@ class Ajax {
 		}
 	}
 
+
 	/**
 	 * Retry a failed analysis via AJAX.
 	 */
 	public function retry_analysis(): void {
+		error_log( '[CK Ajax] retry_analysis called' );
 		check_ajax_referer( 'ck_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'edit_products' ) ) {
@@ -179,6 +186,7 @@ class Ajax {
 		}
 
 		$analysis_id = isset( $_POST['analysis_id'] ) ? (int) $_POST['analysis_id'] : 0;
+		error_log( sprintf( '[CK Ajax] Retry analysis ID: %d', $analysis_id ) );
 
 		if ( ! $analysis_id ) {
 			wp_send_json_error( 'Invalid analysis ID.' );
@@ -191,20 +199,24 @@ class Ajax {
 		}
 
 		try {
+			error_log( sprintf( '[CK Ajax] Clearing error data for analysis #%d', $analysis_id ) );
 			// Reset status and clear error.
 			update_post_meta( $analysis_id, '_ck_status', 'pending' );
 			delete_post_meta( $analysis_id, '_ck_error_message' );
 			delete_post_meta( $analysis_id, '_ck_error_stack_trace' );
 			delete_post_meta( $analysis_id, '_ck_current_step' );
 			delete_post_meta( $analysis_id, '_ck_progress' );
+			delete_post_meta( $analysis_id, '_ck_search_results' );
+			delete_post_meta( $analysis_id, '_ck_analysis_data' );
 
-			// Reschedule the first step job.
+			// Reschedule via Action Scheduler.
 			if ( function_exists( 'as_schedule_single_action' ) ) {
 				as_schedule_single_action(
 					time(),
 					\CompetitorKnowledge\Analysis\Jobs\SearchStepJob::ACTION,
 					array( 'analysis_id' => $analysis_id )
 				);
+				error_log( sprintf( '[CK Ajax] Rescheduled SearchStepJob for analysis #%d', $analysis_id ) );
 			} else {
 				throw new \Exception( 'Action Scheduler not available.' );
 			}

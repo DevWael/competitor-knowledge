@@ -107,7 +107,7 @@ class ZAIProvider implements AIProviderInterface {
 					'Authorization' => 'Bearer ' . $this->api_key,
 				),
 				'body'    => $json_body,
-				'timeout' => 60,
+				'timeout' => 120,
 			)
 		);
 
@@ -115,6 +115,8 @@ class ZAIProvider implements AIProviderInterface {
 		if ( ! is_wp_error( $response ) ) {
 			$status = wp_remote_retrieve_response_code( $response );
 			error_log( '[CK Z.AI] Response status: ' . $status ); // phpcs:ignore
+		} else {
+			error_log( '[CK Z.AI] WP Error: ' . $response->get_error_message() ); // phpcs:ignore
 		}
 
 		if ( is_wp_error( $response ) ) {

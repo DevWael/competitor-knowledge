@@ -27,8 +27,15 @@ jQuery(document).ready(function ($) {
                 nonce: nonce
             },
             success: function (response) {
-                if (response.success && response.data.analysis_id) {
-                    startProgressPolling(response.data.analysis_id, nonce, btn);
+                if (response.success && response.data) {
+                    // Check if completed synchronously.
+                    if (response.data.completed) {
+                        updateProgress(100, 'Analysis complete!', 'completed');
+                        setTimeout(function () { location.reload(); }, 1000);
+                    } else if (response.data.analysis_id) {
+                        // Fall back to polling for async mode.
+                        startProgressPolling(response.data.analysis_id, nonce, btn);
+                    }
                 } else {
                     alert('Error: ' + (response.data || 'Unknown error'));
                     btn.prop('disabled', false).text(ck_vars.btn_text);

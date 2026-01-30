@@ -69,17 +69,21 @@ class GoogleGeminiProvider implements AIProviderInterface {
 		$full_prompt = "Context data: \n" . $context_str . "\n\nInstructions: \n" . $prompt . "\n\nReturn strictly valid minified JSON without markdown formatting.";
 
 		$body = array(
-			'contents'         => array(
+			'contents' => array(
 				array(
 					'parts' => array(
 						array( 'text' => $full_prompt ),
 					),
 				),
 			),
-			'generationConfig' => array(
-				'responseMimeType' => 'application/json',
-			),
 		);
+
+		// Only use JSON mode for models that support it (Gemini models, not Gemma).
+		if ( ! str_contains( strtolower( $this->model ), 'gemma' ) ) {
+			$body['generationConfig'] = array(
+				'responseMimeType' => 'application/json',
+			);
+		}
 
 		$json_body = wp_json_encode( $body );
 		if ( false === $json_body ) {
