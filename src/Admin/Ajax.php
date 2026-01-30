@@ -28,6 +28,81 @@ class Ajax {
 		add_action( 'wp_ajax_ck_run_analysis', array( $this, 'run_analysis' ) );
 		add_action( 'wp_ajax_ck_get_analysis_progress', array( $this, 'get_analysis_progress' ) );
 		add_action( 'wp_ajax_ck_get_product_analyses_modal', array( $this, 'get_product_analyses_modal' ) );
+		add_action( 'wp_ajax_ck_test_zai_api', array( $this, 'test_zai_api' ) );
+		add_action( 'wp_ajax_ck_retry_analysis', array( $this, 'retry_analysis' ) );
+	}
+
+	/**
+	 * Test Z.AI API connection.
+	 */
+	public function test_zai_api(): void {
+		check_ajax_referer( 'ck_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		$options = get_option( Settings::OPTION_NAME, array() );
+		$api_key = Settings::get_decrypted( 'zai_api_key' ); // Use decrypted key!
+		$model   = $options['model_name'] ?? 'glm-4.7';
+
+		if ( empty( $api_key ) ) {
+			wp_send_json_error( 'No Z.AI API key configured.' );
+		}
+
+		// Simple test request.
+		$url = $options['zai_endpoint_url'] ?? 'https://api.z.ai/api/coding/paas/v4/chat/completions';
+		$body = wp_json_encode(
+			array(
+				'model'    => $model,
+				'messages' => array(
+					array(
+						'role'    => 'user',
+						'content' => 'Say "Hello" in one word.',
+					),
+				),
+			)
+		);
+
+		$start_time = microtime( true );
+
+		$response = wp_remote_post(
+			$url,
+			array(
+				'headers' => array(
+					'Content-Type'  => 'application/json',
+					'Authorization' => 'Bearer ' . $api_key,
+				),
+				'body'    => $body,
+				'timeout' => 30,
+			)
+		);
+
+		$elapsed = round( ( microtime( true ) - $start_time ) * 1000 );
+
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error(
+				array(
+					'message'  => 'Connection failed: ' . $response->get_error_message(),
+					'elapsed'  => $elapsed . 'ms',
+				)
+			);
+		}
+
+		$status_code   = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+		$data          = json_decode( $response_body, true );
+
+		wp_send_json_success(
+			array(
+				'status_code'   => $status_code,
+				'elapsed'       => $elapsed . 'ms',
+				'model'         => $model,
+				'url'           => $url,
+				'response'      => $data,
+				'raw_response'  => substr( $response_body, 0, 2000 ),
+			)
+		);
 	}
 
 	/**
@@ -85,6 +160,58 @@ class Ajax {
 			wp_send_json_success(
 				array(
 					'message'     => __( 'Analysis started successfully.', 'competitor-knowledge' ),
+					'analysis_id' => $analysis_id,
+				)
+			);
+		} catch ( \Exception $e ) {
+			wp_send_json_error( $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Retry a failed analysis via AJAX.
+	 */
+	public function retry_analysis(): void {
+		check_ajax_referer( 'ck_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'edit_products' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+
+		$analysis_id = isset( $_POST['analysis_id'] ) ? (int) $_POST['analysis_id'] : 0;
+
+		if ( ! $analysis_id ) {
+			wp_send_json_error( 'Invalid analysis ID.' );
+		}
+
+		// Verify it's a failed analysis.
+		$status = get_post_meta( $analysis_id, '_ck_status', true );
+		if ( 'failed' !== $status ) {
+			wp_send_json_error( 'Analysis is not in failed state.' );
+		}
+
+		try {
+			// Reset status and clear error.
+			update_post_meta( $analysis_id, '_ck_status', 'pending' );
+			delete_post_meta( $analysis_id, '_ck_error_message' );
+			delete_post_meta( $analysis_id, '_ck_error_stack_trace' );
+			delete_post_meta( $analysis_id, '_ck_current_step' );
+			delete_post_meta( $analysis_id, '_ck_progress' );
+
+			// Reschedule the first step job.
+			if ( function_exists( 'as_schedule_single_action' ) ) {
+				as_schedule_single_action(
+					time(),
+					\CompetitorKnowledge\Analysis\Jobs\SearchStepJob::ACTION,
+					array( 'analysis_id' => $analysis_id )
+				);
+			} else {
+				throw new \Exception( 'Action Scheduler not available.' );
+			}
+
+			wp_send_json_success(
+				array(
+					'message'     => __( 'Analysis retry started.', 'competitor-knowledge' ),
 					'analysis_id' => $analysis_id,
 				)
 			);

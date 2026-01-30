@@ -37,14 +37,23 @@ class ZAIProvider implements AIProviderInterface {
 	private string $model;
 
 	/**
+	 * API Endpoint URL.
+	 *
+	 * @var string
+	 */
+	private string $endpoint_url;
+
+	/**
 	 * ZAIProvider constructor.
 	 *
-	 * @param string $api_key The API key.
-	 * @param string $model   The model name to use.
+	 * @param string $api_key      The API key.
+	 * @param string $model        The model name to use.
+	 * @param string $endpoint_url The API endpoint URL.
 	 */
-	public function __construct( string $api_key, string $model = 'glm-4.7' ) {
-		$this->api_key = $api_key;
-		$this->model   = $model;
+	public function __construct( string $api_key, string $model = 'glm-4.7', string $endpoint_url = '' ) {
+		$this->api_key      = $api_key;
+		$this->model        = $model;
+		$this->endpoint_url = $endpoint_url ?: 'https://api.z.ai/api/coding/paas/v4/chat/completions';
 	}
 
 	/**
@@ -57,7 +66,7 @@ class ZAIProvider implements AIProviderInterface {
 	 * @throws RuntimeException If the API request fails.
 	 */
 	public function analyze( string $prompt, array $context ): AnalysisResult {
-		$url = 'https://api.z.ai/api/paas/v4/chat/completions';
+		$url = $this->endpoint_url;
 
 		// Construct the prompt with context.
 		$context_str = wp_json_encode( $context );
@@ -85,6 +94,11 @@ class ZAIProvider implements AIProviderInterface {
 			throw new RuntimeException( 'Failed to encode request body.' );
 		}
 
+		// Debug logging for troubleshooting.
+		error_log( '[CK Z.AI] Request URL: ' . $url ); // phpcs:ignore
+		error_log( '[CK Z.AI] Model: ' . $this->model ); // phpcs:ignore
+		error_log( '[CK Z.AI] Request body length: ' . strlen( $json_body ) . ' bytes' ); // phpcs:ignore
+
 		$response = wp_remote_post(
 			$url,
 			array(
@@ -96,6 +110,12 @@ class ZAIProvider implements AIProviderInterface {
 				'timeout' => 60,
 			)
 		);
+
+		// Log response for debugging.
+		if ( ! is_wp_error( $response ) ) {
+			$status = wp_remote_retrieve_response_code( $response );
+			error_log( '[CK Z.AI] Response status: ' . $status ); // phpcs:ignore
+		}
 
 		if ( is_wp_error( $response ) ) {
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are not output to browser.

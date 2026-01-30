@@ -167,6 +167,20 @@ class Settings {
 		);
 
 		add_settings_field(
+			'zai_endpoint_url',
+			__( 'Z.AI Only: Endpoint URL', 'competitor-knowledge' ),
+			array( $this, 'render_field_text' ),
+			'competitor-knowledge',
+			'ck_general_section',
+			array(
+				'id'          => 'zai_endpoint_url',
+				'class'       => 'ck-field-zai',
+				'default'     => 'https://api.z.ai/api/coding/paas/v4/chat/completions',
+				'description' => __( 'Default: https://api.z.ai/api/coding/paas/v4/chat/completions', 'competitor-knowledge' ),
+			)
+		);
+
+		add_settings_field(
 			'model_name',
 			__( 'Model Name', 'competitor-knowledge' ),
 			array( $this, 'render_field_text' ),

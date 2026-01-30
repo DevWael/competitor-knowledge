@@ -131,7 +131,8 @@ class Plugin {
 				} elseif ( 'openrouter' === $provider_type ) {
 					$provider = new \CompetitorKnowledge\AI\Providers\OpenRouterProvider( $openrouter_key, $model_name );
 				} elseif ( 'zai' === $provider_type ) {
-					$provider = new \CompetitorKnowledge\AI\Providers\ZAIProvider( $zai_key, $model_name );
+					$zai_endpoint = $options['zai_endpoint_url'] ?? 'https://api.z.ai/api/coding/paas/v4/chat/completions';
+					$provider     = new \CompetitorKnowledge\AI\Providers\ZAIProvider( $zai_key, $model_name, $zai_endpoint );
 				} else {
 					// Default to Google.
 					$provider = new \CompetitorKnowledge\AI\Providers\GoogleGeminiProvider( $google_key, $model_name );
@@ -224,6 +225,7 @@ class Plugin {
 			( new Ajax() )->init();
 			( new \CompetitorKnowledge\Admin\BulkActions() )->init();
 			( new \CompetitorKnowledge\Admin\ComparisonMatrix() )->init();
+			( new \CompetitorKnowledge\Admin\ApiDebug() )->init(); // Temporary debug page.
 		}
 
 		// Register Job Handler.

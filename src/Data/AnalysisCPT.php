@@ -139,6 +139,15 @@ class AnalysisCPT {
 		if ( 'processing' === $status && $step ) {
 			printf( '<br><small style="color:#666;">%s</small>', esc_html( $step ) );
 		}
+
+		// Show retry link if failed.
+		if ( 'failed' === $status ) {
+			printf(
+				'<br><a href="#" class="ck-retry-analysis" data-analysis-id="%d" style="color:#0073aa;font-size:12px;">🔄 %s</a>',
+				$post_id,
+				esc_html__( 'Retry', 'competitor-knowledge' )
+			);
+		}
 	}
 
 	/**

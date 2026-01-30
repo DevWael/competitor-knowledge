@@ -150,7 +150,32 @@ class Metaboxes {
 	 * @param WP_Post $post The analysis post.
 	 */
 	public function render_results_metabox( WP_Post $post ): void {
-		$data = get_post_meta( $post->ID, '_ck_analysis_data', true );
+		$status       = get_post_meta( $post->ID, '_ck_status', true );
+		$current_step = get_post_meta( $post->ID, '_ck_current_step', true );
+		$error_msg    = get_post_meta( $post->ID, '_ck_error_message', true );
+		$stack_trace  = get_post_meta( $post->ID, '_ck_error_stack_trace', true );
+		$data         = get_post_meta( $post->ID, '_ck_analysis_data', true );
+
+		// Render status banner.
+		$this->render_status_banner( $status, $current_step );
+
+		// If failed, show error details.
+		if ( 'failed' === $status ) {
+			$this->render_error_details( $error_msg, $stack_trace, $post->ID );
+			return;
+		}
+
+		// If still processing or pending, show message.
+		if ( in_array( $status, array( 'pending', 'processing' ), true ) ) {
+			$step_labels = array(
+				'searching' => __( 'Searching competitors...', 'competitor-knowledge' ),
+				'analyzing' => __( 'Analyzing with AI...', 'competitor-knowledge' ),
+				'saving'    => __( 'Saving results...', 'competitor-knowledge' ),
+			);
+			$step_label = $step_labels[ $current_step ] ?? __( 'Waiting to start...', 'competitor-knowledge' );
+			echo '<p>' . esc_html( $step_label ) . '</p>';
+			return;
+		}
 
 		if ( ! is_array( $data ) || empty( $data['competitors'] ) ) {
 			echo '<p>' . esc_html__( 'No data available yet.', 'competitor-knowledge' ) . '</p>';
@@ -372,4 +397,99 @@ class Metaboxes {
 		</div>
 		<?php
 	}
+
+	/**
+	 * Render the status banner at the top of the analysis.
+	 *
+	 * @param string $status       The analysis status.
+	 * @param string $current_step The current step if processing.
+	 */
+	private function render_status_banner( string $status, string $current_step ): void {
+		$status_config = array(
+			'pending'    => array(
+				'color' => '#f0ad4e',
+				'icon'  => '⏳',
+				'label' => __( 'Pending', 'competitor-knowledge' ),
+			),
+			'processing' => array(
+				'color' => '#5bc0de',
+				'icon'  => '⚙️',
+				'label' => __( 'Processing', 'competitor-knowledge' ),
+			),
+			'completed'  => array(
+				'color' => '#5cb85c',
+				'icon'  => '✅',
+				'label' => __( 'Completed', 'competitor-knowledge' ),
+			),
+			'failed'     => array(
+				'color' => '#d9534f',
+				'icon'  => '❌',
+				'label' => __( 'Failed', 'competitor-knowledge' ),
+			),
+		);
+
+		$config = $status_config[ $status ] ?? $status_config['pending'];
+		$step_labels = array(
+			'searching' => __( 'Searching competitors', 'competitor-knowledge' ),
+			'analyzing' => __( 'Analyzing with AI', 'competitor-knowledge' ),
+			'saving'    => __( 'Saving results', 'competitor-knowledge' ),
+		);
+		?>
+		<div class="ck-status-banner" style="padding: 12px 15px; margin-bottom: 20px; border-left: 4px solid <?php echo esc_attr( $config['color'] ); ?>; background: #f9f9f9; border-radius: 0 4px 4px 0;">
+			<span style="font-size: 16px; margin-right: 8px;"><?php echo esc_html( $config['icon'] ); ?></span>
+			<strong style="color: <?php echo esc_attr( $config['color'] ); ?>;"><?php echo esc_html( $config['label'] ); ?></strong>
+			<?php if ( 'processing' === $status && $current_step ) : ?>
+				<span style="color: #666; margin-left: 10px;">— <?php echo esc_html( $step_labels[ $current_step ] ?? $current_step ); ?></span>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render error details when analysis failed.
+	 *
+	 * @param string $error_msg   The error message.
+	 * @param string $stack_trace The stack trace.
+	 * @param int    $analysis_id The analysis ID for retry.
+	 */
+	private function render_error_details( string $error_msg, string $stack_trace, int $analysis_id = 0 ): void {
+		?>
+		<div class="ck-error-details" style="background: #fff5f5; border: 1px solid #f5c6cb; padding: 15px; border-radius: 4px;">
+			<h4 style="color: #721c24; margin-top: 0;">
+				<?php esc_html_e( '❌ Analysis Failed', 'competitor-knowledge' ); ?>
+			</h4>
+			
+			<?php if ( $error_msg ) : ?>
+				<div style="margin-bottom: 15px;">
+					<strong><?php esc_html_e( 'Error Message:', 'competitor-knowledge' ); ?></strong>
+					<p style="margin: 5px 0; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 3px; font-family: monospace;">
+						<?php echo esc_html( $error_msg ); ?>
+					</p>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( $stack_trace ) : ?>
+				<div>
+					<strong><?php esc_html_e( 'Stack Trace:', 'competitor-knowledge' ); ?></strong>
+					<details style="margin-top: 5px;">
+						<summary style="cursor: pointer; color: #666;"><?php esc_html_e( 'Click to expand', 'competitor-knowledge' ); ?></summary>
+						<pre style="margin: 10px 0 0; padding: 10px; background: #2d2d2d; color: #f8f8f2; border-radius: 3px; overflow-x: auto; font-size: 11px; max-height: 300px;"><?php echo esc_html( $stack_trace ); ?></pre>
+					</details>
+				</div>
+			<?php endif; ?>
+
+			<p style="margin-top: 15px; margin-bottom: 0;">
+				<?php if ( $analysis_id ) : ?>
+					<button type="button" class="button button-primary ck-retry-analysis" data-analysis-id="<?php echo esc_attr( $analysis_id ); ?>" style="margin-right: 10px;">
+						🔄 <?php esc_html_e( 'Retry Analysis', 'competitor-knowledge' ); ?>
+					</button>
+				<?php endif; ?>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=competitor-knowledge' ) ); ?>" class="button">
+					<?php esc_html_e( 'Check Settings', 'competitor-knowledge' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php
+	}
 }
+

@@ -35,7 +35,7 @@ jQuery(document).ready(function ($) {
                     $('#ck-progress-container').hide();
                 }
             },
-            error: function() {
+            error: function () {
                 alert('Error: Request failed.');
                 btn.prop('disabled', false).text(ck_vars.btn_text);
                 $('#ck-progress-container').hide();
@@ -45,7 +45,7 @@ jQuery(document).ready(function ($) {
 
     // Progress Polling
     function startProgressPolling(analysisId, nonce, btn) {
-        pollInterval = setInterval(function() {
+        pollInterval = setInterval(function () {
             $.ajax({
                 url: ck_vars.ajax_url,
                 type: 'GET',
@@ -62,7 +62,7 @@ jQuery(document).ready(function ($) {
                         if (data.completed) {
                             stopPolling();
                             updateProgress(100, 'Analysis complete!', 'completed');
-                            setTimeout(function() { location.reload(); }, 1500);
+                            setTimeout(function () { location.reload(); }, 1500);
                         } else if (data.failed) {
                             stopPolling();
                             updateProgress(0, 'Analysis failed: ' + (data.error || 'Unknown error'), 'failed');
@@ -70,7 +70,7 @@ jQuery(document).ready(function ($) {
                         }
                     }
                 },
-                error: function() {
+                error: function () {
                     // Continue polling on error
                 }
             });
@@ -88,7 +88,7 @@ jQuery(document).ready(function ($) {
         $('#ck-progress-bar').css('width', percent + '%');
         $('#ck-progress-percent').text(percent + '%');
         $('#ck-progress-label').text(label);
-        
+
         if (status === 'completed') {
             $('#ck-progress-bar').css('background', 'linear-gradient(90deg, #4caf50, #8bc34a)');
         } else if (status === 'failed') {
@@ -132,7 +132,7 @@ jQuery(document).ready(function ($) {
 
         $('body').append(modal);
 
-        $('#ck-modal-close, #ck-modal-overlay').on('click', function(e) {
+        $('#ck-modal-close, #ck-modal-overlay').on('click', function (e) {
             if (e.target === this) {
                 $('#ck-modal-overlay').remove();
             }
@@ -172,4 +172,49 @@ jQuery(document).ready(function ($) {
         toggleProviderFields();
         $('#ck-ai-provider, [name="competitor_knowledge_options[search_provider]"]').on('change', toggleProviderFields);
     }
+
+    // Retry Analysis Handler
+    $(document).on('click', '.ck-retry-analysis', function (e) {
+        e.preventDefault();
+
+        var btn = $(this);
+        var analysisId = btn.data('analysis-id');
+        var nonce = typeof ck_vars !== 'undefined' ? ck_vars.nonce : '';
+
+        if (!analysisId) {
+            alert('Error: Analysis ID missing.');
+            return;
+        }
+
+        if (!nonce) {
+            // Try to get nonce from inline script on analysis edit page
+            alert('Error: Nonce not found. Please refresh the page.');
+            return;
+        }
+
+        btn.prop('disabled', true).text('Retrying...');
+
+        $.ajax({
+            url: typeof ck_vars !== 'undefined' ? ck_vars.ajax_url : ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'ck_retry_analysis',
+                analysis_id: analysisId,
+                nonce: nonce
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert(response.data.message || 'Analysis retry started.');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (response.data || 'Unknown error'));
+                    btn.prop('disabled', false).text('🔄 Retry Analysis');
+                }
+            },
+            error: function () {
+                alert('Error: Request failed.');
+                btn.prop('disabled', false).text('🔄 Retry Analysis');
+            }
+        });
+    });
 });
